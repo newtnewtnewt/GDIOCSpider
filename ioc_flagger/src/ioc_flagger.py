@@ -11,7 +11,6 @@ from indicator_checks import detect_sha1_indicator
 from indicator_checks import detect_sha256_indicator
 from indicator_checks import detect_sha512_indicator
 from indicator_checks import detect_user_agent_indicator
-from indicator_checks import detect_username_indicator
 
 
 class IOCTyper:
@@ -35,8 +34,6 @@ class IOCTyper:
             return "Registry Key"
         elif detect_user_agent_indicator(ioc_value):
             return "User Agent"
-        elif detect_username_indicator(ioc_value):
-            return "Username"
         elif detect_password_indicator(ioc_value):
             return "Password"
         elif detect_domain_name_indicator(ioc_value):

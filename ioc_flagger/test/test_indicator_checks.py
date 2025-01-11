@@ -6,7 +6,7 @@ from ioc_flagger.src.indicator_checks import (
     detect_sha1_indicator,
     detect_sha256_indicator,
     detect_sha512_indicator,
-    detect_email_indicator,
+    detect_email_indicator, detect_registry_key_indicator, detect_user_agent_indicator, detect_password_indicator,
 )
 
 
@@ -252,7 +252,73 @@ class TestDetectEmailIndicator(unittest.TestCase):
         self.assertTrue(detect_email_indicator("example!@domain.com"))
         self.assertFalse(detect_email_indicator("example@domain!com"))
 
+class TestDetectRegistryKeyIndicator(unittest.TestCase):
+    def test_valid_registry_key(self):
+        self.assertTrue(
+            detect_registry_key_indicator("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion"))
+        self.assertTrue(detect_registry_key_indicator("HKEY_CURRENT_USER\\Software\\Classes"))
+        self.assertTrue(detect_registry_key_indicator("HKEY_CLASSES_ROOT\\.txt"))
+        self.assertTrue(detect_registry_key_indicator("HKLM\\Software\\Microsoft"))
+        self.assertTrue(detect_registry_key_indicator("HKCU\\Software\\Classes\\Applications"))
+        self.assertTrue(detect_registry_key_indicator("HKCR\\.docx"))
+        self.assertTrue(detect_registry_key_indicator("HKU\\.DEFAULT\\Software"))
+        self.assertTrue(detect_registry_key_indicator("HKCC\\System\\CurrentControlSet"))
+        self.assertTrue(detect_registry_key_indicator("HKEY_LOCAL_MACHINE"))
+        self.assertTrue(detect_registry_key_indicator("HKCU"))
+
+    def test_invalid_registry_key(self):
+        self.assertFalse(detect_registry_key_indicator("HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion"))
+        self.assertFalse(detect_registry_key_indicator("C:\\Windows\\System32"))
+        self.assertFalse(detect_registry_key_indicator("HKEY_LOCAL_MACHINE<xyz>"))
+        self.assertFalse(detect_registry_key_indicator("INVALID_KEY\\Software\\Microsoft"))
+        self.assertFalse(detect_registry_key_indicator("HKEY_LOCAL_MACHINE\\Software:Invalid<Chars>"))
+        self.assertFalse(detect_registry_key_indicator("HKCU\\Software\\|Microsoft"))
+
+    def test_edge_cases(self):
+        self.assertFalse(detect_registry_key_indicator(""))
+        self.assertFalse(detect_registry_key_indicator("\\Software\\Microsoft"))
+        self.assertFalse(detect_registry_key_indicator("HKCU\\\\"))
+        self.assertTrue(detect_registry_key_indicator("HKEY_USERS\\.DEFAULT"))
+
+
+class TestDetectUserAgentIndicator(unittest.TestCase):
+
+    def test_valid_user_agent(self):
+        self.assertTrue(detect_user_agent_indicator(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"))
+        self.assertTrue(detect_user_agent_indicator("curl/7.64.1"))
+        self.assertTrue(detect_user_agent_indicator("PostmanRuntime/7.26.10"))
+
+    def test_invalid_user_agent(self):
+        self.assertFalse(detect_user_agent_indicator("Invalid /User Agent String"))
+        self.assertFalse(detect_user_agent_indicator("   "))
+        self.assertFalse(detect_user_agent_indicator("/5.0 Mozilla"))
+        self.assertFalse(detect_user_agent_indicator("fake.name"))
+        self.assertFalse(detect_user_agent_indicator("password123"))
+        self.assertFalse(detect_user_agent_indicator("www.domain.com"))
+        self.assertFalse(detect_user_agent_indicator("fake.exe"))
+        self.assertFalse(detect_user_agent_indicator("C:\\\\fake\\\\fake.exe"))
+        self.assertFalse(detect_user_agent_indicator("/fake/fake.exe"))
+
+    def test_edge_case_user_agent(self):
+        self.assertTrue(detect_user_agent_indicator("Tool/1.0"))
+        self.assertFalse(detect_user_agent_indicator(""))
+        self.assertTrue(detect_user_agent_indicator("CustomUserAgent123/4.5.6 (Some Comment) AnotherTool/1.2.3"))
+        self.assertFalse(detect_user_agent_indicator("RandomTextWithoutSlashOrNumber"))
+
+class TestDetectPasswordIndicator(unittest.TestCase):
+    def test_valid_password(self):
+        self.assertTrue(detect_password_indicator("password123"))
+        self.assertTrue(detect_password_indicator("qwerty"))
+        self.assertTrue(detect_password_indicator("letmein"))
+
+    def test_invalid_password(self):
+        self.assertFalse(detect_password_indicator("randominput"))
+        self.assertFalse(detect_password_indicator("notapassword"))
+        self.assertFalse(detect_password_indicator("thereisnowaythisisinrockyou"))
+
+    def test_empty_input(self):
+        self.assertFalse(detect_password_indicator(""))
 
 if __name__ == "__main__":
-    print("IS THIS RUNNING!")
     unittest.main()

@@ -1,5 +1,8 @@
 import re
 
+from ioc_flagger.src.data_bank.io_databank import DataBank
+
+data_bank = DataBank()
 
 def detect_ipv4_indicator(ioc_value: str) -> bool:
     ipv4_pattern = r"^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\Z"
@@ -39,24 +42,27 @@ def detect_email_indicator(ioc_value: str) -> bool:
 
 
 def detect_registry_key_indicator(ioc_value: str) -> bool:
-    return False
+    registry_pattern = r"^(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER|HKEY_CLASSES_ROOT|HKEY_USERS|HKEY_CURRENT_CONFIG|HKLM|HKCU|HKCR|HKU|HKCC)((\\[^\0\/:*?\"<>|]+)([a-zA-Z\.-])+)*$"
+    return bool(re.fullmatch(registry_pattern, ioc_value))
 
 
 def detect_user_agent_indicator(ioc_value: str) -> bool:
-    return False
+    user_agent_pattern = r"^[a-zA-Z][^\s]*\/[\d\.]+(\s\([^\)]+\))?(?:\s[a-zA-Z][^\s]*\/[\d\.]+(\s\([^\)]+\))?)*$"
+    return bool(re.fullmatch(user_agent_pattern, ioc_value))
 
-
-def detect_username_indicator(ioc_value: str) -> bool:
-    return False
-
+# TODO: Maybe try a username brute force at some point
 
 def detect_password_indicator(ioc_value: str) -> bool:
-    return False
+    return ioc_value in data_bank.password_data
 
 
 def detect_domain_name_indicator(ioc_value: str) -> bool:
-    return False
+    domain_pattern = r"^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
+    file_ending_pattern = r"\.(com|org|net|edu|gov|io|co|info|biz)$"
+    return bool(re.fullmatch(domain_pattern, ioc_value)) and bool(re.search(file_ending_pattern, ioc_value))
 
+def detect_url_indicator(ioc_value: str) -> bool:
+    return False
 
 def detect_file_name_indicator(ioc_value: str) -> bool:
     return False
