@@ -4,6 +4,7 @@ from ioc_flagger.src.data_bank.io_databank import DataBank
 
 data_bank = DataBank()
 
+
 def detect_ipv4_indicator(ioc_value: str) -> bool:
     ipv4_pattern = r"^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\Z"
     return bool(re.fullmatch(ipv4_pattern, ioc_value))
@@ -50,19 +51,30 @@ def detect_user_agent_indicator(ioc_value: str) -> bool:
     user_agent_pattern = r"^[a-zA-Z][^\s]*\/[\d\.]+(\s\([^\)]+\))?(?:\s[a-zA-Z][^\s]*\/[\d\.]+(\s\([^\)]+\))?)*$"
     return bool(re.fullmatch(user_agent_pattern, ioc_value))
 
+
 # TODO: Maybe try a username brute force at some point
+
 
 def detect_password_indicator(ioc_value: str) -> bool:
     return ioc_value in data_bank.password_data
 
 
 def detect_domain_name_indicator(ioc_value: str) -> bool:
-    domain_pattern = r"^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
-    file_ending_pattern = r"\.(com|org|net|edu|gov|io|co|info|biz)$"
-    return bool(re.fullmatch(domain_pattern, ioc_value)) and bool(re.search(file_ending_pattern, ioc_value))
+    domain_pattern = (
+        r"^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
+    )
+    if (
+        "." in ioc_value
+        and bool(re.fullmatch(domain_pattern, ioc_value))
+        and ioc_value.upper().split(".")[-1] in data_bank.valid_domain_endings
+    ):
+        return True
+    return False
+
 
 def detect_url_indicator(ioc_value: str) -> bool:
     return False
+
 
 def detect_file_name_indicator(ioc_value: str) -> bool:
     return False
