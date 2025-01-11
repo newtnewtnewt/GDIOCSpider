@@ -11,6 +11,9 @@ from ioc_flagger.src.indicator_checks import (
     detect_user_agent_indicator,
     detect_password_indicator,
     detect_domain_name_indicator,
+    detect_url_indicator,
+    detect_file_name_indicator,
+    detect_file_path_indicator,
 )
 
 
@@ -381,6 +384,112 @@ class TestDetectDomainNameIndicator(unittest.TestCase):
         self.assertTrue(detect_domain_name_indicator("example.gov"))
         self.assertTrue(detect_domain_name_indicator("subdomain.example.museum"))
         self.assertFalse(detect_domain_name_indicator("example.invalidtld"))
+
+
+class TestDetectUrlIndicator(unittest.TestCase):
+
+    def test_valid_http_url(self):
+        self.assertTrue(detect_url_indicator("http://www.example.com"))
+        self.assertTrue(detect_url_indicator("http://example.org/page"))
+        self.assertTrue(detect_url_indicator("http://subdomain.example.co.uk/test"))
+        self.assertTrue(detect_url_indicator("http://subdomain.example.co.uk/test.exe"))
+
+    def test_valid_https_url(self):
+        self.assertTrue(detect_url_indicator("https://example.com"))
+        self.assertTrue(detect_url_indicator("https://sub.example.net/page"))
+        self.assertTrue(detect_url_indicator("https://www.example.io/path/to/resource"))
+
+    def test_invalid_url_missing_scheme(self):
+        self.assertFalse(detect_url_indicator("www.example.com"))
+        self.assertFalse(detect_url_indicator("example.com"))
+
+    def test_invalid_url_invalid_scheme(self):
+        self.assertFalse(detect_url_indicator("ftp://example.com"))
+        self.assertFalse(detect_url_indicator("htp://example.com"))
+
+    def test_invalid_url_incorrect_format(self):
+        self.assertFalse(detect_url_indicator("http:///example.com"))
+        self.assertFalse(detect_url_indicator("http://.com"))
+        self.assertFalse(detect_url_indicator("http://example"))
+
+    def test_url_with_invalid_tld(self):
+        self.assertFalse(detect_url_indicator("http://example.invalidtld"))
+        self.assertFalse(detect_url_indicator("https://web.pagewrong"))
+        self.assertFalse(
+            detect_url_indicator("https://www.sub.example.fak/path/to/resource.exe")
+        )
+
+    def test_edge_cases(self):
+        self.assertFalse(detect_url_indicator(""))
+        self.assertFalse(detect_url_indicator("http://"))
+        self.assertFalse(detect_url_indicator("https://"))
+
+
+class TestDetectFileNameIndicator(unittest.TestCase):
+    def test_valid_file_names(self):
+        self.assertTrue(detect_file_name_indicator("example.txt"))
+        self.assertTrue(detect_file_name_indicator("document.pdf"))
+        self.assertTrue(detect_file_name_indicator("archive.tar.gz"))
+        self.assertTrue(detect_file_name_indicator("file123.docx"))
+
+    def test_invalid_file_names(self):
+        self.assertFalse(detect_file_name_indicator("example"))
+        self.assertFalse(detect_file_name_indicator("file/name.txt"))
+        self.assertFalse(detect_file_name_indicator("document:<pdf>"))
+        self.assertFalse(detect_file_name_indicator("invalid|file.exe"))
+        self.assertFalse(detect_file_name_indicator(".hiddenfile"))
+        self.assertFalse(
+            detect_file_name_indicator("file_with_invalid_extension.toolongext")
+        )
+
+    def test_edge_cases(self):
+        self.assertTrue(detect_file_name_indicator("a.b"))
+        self.assertTrue(detect_file_name_indicator("filename.x"))
+        self.assertTrue(detect_file_name_indicator("file name.txt"))
+        self.assertFalse(detect_file_name_indicator("file\nname.txt"))
+        self.assertFalse(detect_file_name_indicator(""))
+
+
+class TestDetectFilePathIndicator(unittest.TestCase):
+
+    def test_valid_windows_paths(self):
+        self.assertTrue(
+            detect_file_path_indicator("C:\\Users\\User\\Documents\\file.txt")
+        )
+        self.assertTrue(
+            detect_file_path_indicator("C:\\Program Files\\Application\\app.exe")
+        )
+        self.assertTrue(detect_file_path_indicator("D:\\data\\subfolder\\file.ext"))
+
+    def test_valid_linux_paths(self):
+        self.assertTrue(detect_file_path_indicator("/home/user/docs/file.txt"))
+        self.assertTrue(detect_file_path_indicator("/usr/local/bin/executable"))
+        self.assertTrue(detect_file_path_indicator("/etc/config/settings.cfg"))
+
+    def test_invalid_paths(self):
+        self.assertFalse(
+            detect_file_path_indicator(
+                "invalid_path_without_drive_letter\\folder\\file.txt"
+            )
+        )
+        self.assertFalse(
+            detect_file_path_indicator("C:/mixed\\slashes\\are\\not\\allowed")
+        )
+        self.assertFalse(
+            detect_file_path_indicator("/home/user//double_slash/file.txt")
+        )
+        self.assertFalse(
+            detect_file_path_indicator("C:\\folder_with_invalid|character\\file.txt")
+        )
+        self.assertFalse(detect_file_path_indicator(""))
+
+    def test_edge_cases(self):
+        self.assertFalse(
+            detect_file_path_indicator("\\\\network_share\\folder\\file.txt")
+        )
+        self.assertFalse(detect_file_path_indicator("C:\\"))
+        self.assertFalse(detect_file_path_indicator("/"))
+        self.assertFalse(detect_file_path_indicator(":::::"))
 
 
 if __name__ == "__main__":
