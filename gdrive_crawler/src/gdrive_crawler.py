@@ -1,9 +1,10 @@
+import os
+
+from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from google.auth.transport.requests import Request
-from google_auth_oauthlib.flow import InstalledAppFlow
-import os
 
 # Scopes for Google Drive API
 # https://developers.google.com/drive/api/quickstart/python
@@ -52,15 +53,26 @@ def authenticate_google_drive(token_path):
 
 def list_all_files(service):
     """
-    List all files in the user's Google Drive.
+    List all files in the user's Google Drive along with their full paths.
 
     Args:
         service: Google Drive API service object.
 
     Returns:
-        List of files (dict with 'id' and 'name').
+        List of files (dict with 'id', 'name', and 'path').
     """
-    try:
+
+    def fetch_files_in_folder(parent_id, parent_path):
+        """
+        Recursively fetch files and folders within a parent folder.
+
+        Args:
+            parent_id (str): ID of the parent folder.
+            parent_path (str): Path of the parent folder.
+
+        Returns:
+            List of files with their paths.
+        """
         results = []
         page_token = None
 
@@ -68,6 +80,7 @@ def list_all_files(service):
             response = (
                 service.files()
                 .list(
+                    q=f"'{parent_id}' in parents",
                     pageSize=1000,
                     fields="nextPageToken, files(id, name, mimeType, size)",
                     pageToken=page_token,
@@ -75,14 +88,59 @@ def list_all_files(service):
                 .execute()
             )
 
-            results.extend(response.get("files", []))
-            page_token = response.get("nextPageToken", None)
+            for file in response.get("files", []):
+                file_path = f"{parent_path}/{file['name']}"
+                # TODO: Pull this in from a settings file
+                # https://mimetype.io/all-types
+                MIME_FILE_TYPES_TO_SCAN = [
+                    "text/plain",
+                    "text/csv",
+                    "application/pdf",
+                    "application/json",
+                    "application/vnd.google-apps.presentation",
+                    "application/vnd.google-apps.document",
+                    "text/x-python",
+                    "application/vnd.google-apps.spreadsheet",
+                ]
+                # IGNORE_FILES_AND_FOLDERS = ["old_school_stuff"]
+                IGNORE_FILES_AND_FOLDERS = [
+                    "Misc",
+                    "Reference Letters",
+                    "School",
+                    "Work Stuff",
+                ]
 
+                if (
+                    file["mimeType"] == "application/vnd.google-apps.folder"
+                    and file["name"] not in IGNORE_FILES_AND_FOLDERS
+                ):
+                    # Recursively process folders
+                    print(f"Searching folder {file_path} for more files...")
+                    results.extend(fetch_files_in_folder(file["id"], file_path))
+                else:
+                    if file["name"] in IGNORE_FILES_AND_FOLDERS:
+                        print(
+                            f"Ignoring folder {file['name']} due to file exclusion settings."
+                        )
+                        continue
+                    if file["mimeType"] not in MIME_FILE_TYPES_TO_SCAN:
+                        print(
+                            f"Ignoring file {file['name']} due to file ending settings."
+                        )
+                        continue
+                    file["path"] = file_path
+                    results.append(file)
+
+            page_token = response.get("nextPageToken", None)
             if not page_token:
                 break
 
         return results
 
+    try:
+        # Start recursion from the root folder
+        root_files = fetch_files_in_folder("root", "")
+        return root_files
     except HttpError as error:
         print(f"An error occurred: {error}")
         return []
@@ -90,32 +148,52 @@ def list_all_files(service):
 
 def display_files(files):
     """
-    Display files and allow user selection.
+    Display files categorized by their types and return a dictionary with metadata.
 
     Args:
         files (list): List of files to display.
 
     Returns:
-        List of selected file IDs.
+        dict: Dictionary of files categorized by their types with metadata.
     """
-    print("\nAvailable Files:")
-    selected_ids = []
+    MIME_TYPE_CATEGORIES = {
+        "text/plain": "Text File",
+        "text/csv": "CSV File",
+        "application/pdf": "PDF File",
+        "application/json": "JSON File",
+        "application/vnd.google-apps.presentation": "Google Slides",
+        "application/vnd.google-apps.document": "Google Docs",
+        "text/x-python": "Python Script",
+        "application/vnd.google-apps.spreadsheet": "Google Sheets",
+        "Unknown": "Unknown Type",
+    }
 
-    for i, file in enumerate(files):
-        size = file.get("size", "Unknown")
-        print(
-            f"[{i}] {file['name']} (ID: {file['id']}, Type: {file['mimeType']}, Size: {size} bytes)"
-        )
+    categorized_files = {}
 
-    choices = input("\nEnter the indices of files to select (comma-separated): ")
+    print(f"\nAvailable Files by Category ({len(files)} total):")
 
-    try:
-        indices = [int(x.strip()) for x in choices.split(",")]
-        selected_ids = [files[i]["id"] for i in indices if i < len(files)]
-    except ValueError:
-        print("Invalid input. Please use numeric indices.")
+    for file in files:
+        mime_type = file.get("mimeType", "Unknown")
+        category = MIME_TYPE_CATEGORIES.get(mime_type, "Other")
+        file_path = file.get("path", "Unknown Path")
+        file_metadata = {
+            "id": file.get("id"),
+            "name": file.get("name"),
+            "path": file_path,
+            "mimeType": mime_type,
+            "size": file.get("size", "Unknown"),
+        }
 
-    return selected_ids
+        if category not in categorized_files:
+            categorized_files[category] = []
+        categorized_files[category].append(file_metadata)
+
+    for category, files_list in categorized_files.items():
+        print(f"\n{category} ({len(files_list)}):")
+        for file_meta in files_list:
+            print(file_meta["path"])
+
+    return categorized_files
 
 
 def main():
@@ -125,10 +203,12 @@ def main():
     GCP_TOKEN_FILE_PATH = os.getenv(
         "GCP_TOKEN_FILE_PATH", os.path.join(ROOT_DIR, "token.json")
     )
-    print(GCP_TOKEN_FILE_PATH)
 
     service = authenticate_google_drive(GCP_TOKEN_FILE_PATH)
     if not service:
+        print(
+            f"Was unable to authenticate with Google Drive at path {GCP_TOKEN_FILE_PATH}, if an old token.json is present, delete and re-run"
+        )
         return
 
     files = list_all_files(service)
