@@ -170,3 +170,6 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 rockyou.txt
+gdrive_crawler/src/credentials.json
+service_credentials.json
+token.json
