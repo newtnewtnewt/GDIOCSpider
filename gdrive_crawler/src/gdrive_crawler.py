@@ -6,6 +6,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from file_scraper.file_scraper import process_gdrive_file
+
 # Scopes for Google Drive API
 # https://developers.google.com/drive/api/quickstart/python
 SCOPES = [
@@ -51,12 +53,12 @@ def authenticate_google_drive(token_path):
         return None
 
 
-def list_all_files(service):
+def list_all_files(gdrive_service):
     """
     List all files in the user's Google Drive along with their full paths.
 
     Args:
-        service: Google Drive API service object.
+        gdrive_service: Google Drive API service object.
 
     Returns:
         List of files (dict with 'id', 'name', and 'path').
@@ -78,7 +80,7 @@ def list_all_files(service):
 
         while True:
             response = (
-                service.files()
+                gdrive_service.files()
                 .list(
                     q=f"'{parent_id}' in parents",
                     pageSize=1000,
@@ -146,7 +148,7 @@ def list_all_files(service):
         return []
 
 
-def display_files(files):
+def categorize_files(files):
     """
     Display files categorized by their types and return a dictionary with metadata.
 
@@ -196,7 +198,7 @@ def display_files(files):
     return categorized_files
 
 
-def main():
+def get_gdrive_service_object():
     ROOT_DIR = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     )
@@ -209,18 +211,31 @@ def main():
         print(
             f"Was unable to authenticate with Google Drive at path {GCP_TOKEN_FILE_PATH}, if an old token.json is present, delete and re-run"
         )
-        return
+    return service
 
-    files = list_all_files(service)
+
+def gather_valid_gdrive_files(gdrive_service):
+    files = list_all_files(gdrive_service)
 
     if not files:
         print("No files found.")
-        return
+        return {}
 
-    selected_ids = display_files(files)
+    organized_file_collection = categorize_files(files)
 
-    print("\nSelected File IDs:")
-    print(selected_ids)
+    return organized_file_collection
+
+
+def process_gdrive_files(gdrive_service, organized_file_collection):
+    for file_type, files_metadata in organized_file_collection.items():
+        for file_metadata in files_metadata:
+            process_gdrive_file(gdrive_service, file_type, file_metadata)
+
+
+def main():
+    gdrive_service = get_gdrive_service_object()
+    organized_file_collection = gather_valid_gdrive_files(gdrive_service)
+    process_gdrive_files(gdrive_service, organized_file_collection)
 
 
 if __name__ == "__main__":
