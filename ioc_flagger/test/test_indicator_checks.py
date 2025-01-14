@@ -15,6 +15,7 @@ from ioc_flagger.src.indicator_checks import (
     detect_file_name_indicator,
     detect_file_path_indicator,
 )
+from ioc_flagger.src.ioc_flagger import IOCTyper
 
 
 class TestDetectIPv4Indicator(unittest.TestCase):
@@ -490,6 +491,111 @@ class TestDetectFilePathIndicator(unittest.TestCase):
         self.assertFalse(detect_file_path_indicator("C:\\"))
         self.assertFalse(detect_file_path_indicator("/"))
         self.assertFalse(detect_file_path_indicator(":::::"))
+
+
+class TestIOCTyper(unittest.TestCase):
+    def test_fang_indicator_conversion(self):
+        typer = IOCTyper("")
+        self.assertEqual(
+            typer.fang_indicator("hxxp://example.com"), "http://example.com"
+        )
+        self.assertEqual(
+            typer.fang_indicator("hxxps://example.com"), "https://example.com"
+        )
+        self.assertEqual(typer.fang_indicator("(example).com"), "example.com")
+        self.assertEqual(typer.fang_indicator("[example].com"), "example.com")
+        self.assertEqual(typer.fang_indicator("{example}.com"), "example.com")
+        self.assertEqual(typer.fang_indicator("\nexample,com\r"), "example.com")
+
+    def test_dynamically_interpret_type_ipv4(self):
+        typer = IOCTyper("")
+        self.assertEqual(typer.dynamically_interpret_type("192.168.0.1"), "IPv4")
+        self.assertEqual(typer.dynamically_interpret_type("8.8.8.8"), "IPv4")
+
+    def test_dynamically_interpret_type_ipv6(self):
+        typer = IOCTyper("")
+        self.assertEqual(
+            typer.dynamically_interpret_type("2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
+            "IPv6",
+        )
+        self.assertEqual(typer.dynamically_interpret_type("::1"), "IPv6")
+
+    def test_dynamically_interpret_type_hashes(self):
+        typer = IOCTyper("")
+        self.assertEqual(
+            typer.dynamically_interpret_type("d41d8cd98f00b204e9800998ecf8427e"), "MD5"
+        )
+        self.assertEqual(
+            typer.dynamically_interpret_type(
+                "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+            ),
+            "SHA1",
+        )
+        self.assertEqual(
+            typer.dynamically_interpret_type(
+                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            ),
+            "SHA256",
+        )
+        self.assertEqual(
+            typer.dynamically_interpret_type(
+                "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+            ),
+            "SHA512",
+        )
+
+    def test_dynamically_interpret_type_email(self):
+        typer = IOCTyper("")
+        self.assertEqual(
+            typer.dynamically_interpret_type("example@example.com"), "Email"
+        )
+
+    def test_dynamically_interpret_type_registry_key(self):
+        typer = IOCTyper("")
+        self.assertEqual(
+            typer.dynamically_interpret_type(r"HKLM\Software\Microsoft"), "Registry Key"
+        )
+
+    def test_dynamically_interpret_type_user_agent(self):
+        typer = IOCTyper("")
+        self.assertEqual(
+            typer.dynamically_interpret_type(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+            ),
+            "User Agent",
+        )
+
+    def test_dynamically_interpret_type_password(self):
+        typer = IOCTyper("")
+        self.assertEqual(typer.dynamically_interpret_type("P@ssw0rd!"), "Password")
+
+    def test_dynamically_interpret_type_domain_name(self):
+        typer = IOCTyper("")
+        self.assertEqual(typer.dynamically_interpret_type("example.com"), "Domain Name")
+
+    def test_dynamically_interpret_type_file_name(self):
+        typer = IOCTyper("")
+        self.assertEqual(typer.dynamically_interpret_type("example.txt"), "File Name")
+
+    def test_dynamically_interpret_type_file_path(self):
+        typer = IOCTyper("")
+        self.assertEqual(
+            typer.dynamically_interpret_type(r"C:\Users\example\file.txt"), "File Path"
+        )
+
+    def test_dynamically_interpret_type_fall_through(self):
+        typer = IOCTyper("")
+        self.assertEqual(typer.dynamically_interpret_type("unknown_value"), "Unknown")
+
+    def test_ioc_type_manual_initialization(self):
+        typer = IOCTyper("192.168.0.1", ioc_type="CustomType")
+        self.assertEqual(typer.ioc_value, "192.168.0.1")
+        self.assertEqual(typer.ioc_type, "CustomType")
+
+    def test_ioc_type_dynamic_initialization(self):
+        typer = IOCTyper("192.168.0.1")
+        self.assertEqual(typer.ioc_value, "192.168.0.1")
+        self.assertEqual(typer.ioc_type, "IPv4")
 
 
 if __name__ == "__main__":

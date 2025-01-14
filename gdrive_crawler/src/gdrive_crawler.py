@@ -6,7 +6,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from file_scraper.file_scraper import process_gdrive_file
+from file_scraper.file_scraper import extract_indicators_from_gdrive_file
 
 # Scopes for Google Drive API
 # https://developers.google.com/drive/api/quickstart/python
@@ -28,22 +28,30 @@ def authenticate_google_drive(token_path):
     """
     try:
         creds = None
+        ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+        GCP_TOKEN_FILE_PATH = os.getenv(
+            "GCP_TOKEN_FILE_PATH", os.path.join(ROOT_DIR, "token.json")
+        )
+        GCP_CREDENTIALS_FILE_PATH = os.getenv(
+            "GCP_CREDENTIALS_FILE_PATH", os.path.join(ROOT_DIR, "credentials.json")
+        )
+
         # The file token.json stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
         # time.
-        if os.path.exists("token.json"):
-            creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+        if os.path.exists(GCP_TOKEN_FILE_PATH):
+            creds = Credentials.from_authorized_user_file(GCP_TOKEN_FILE_PATH, SCOPES)
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    "credentials.json", SCOPES
+                    GCP_CREDENTIALS_FILE_PATH, SCOPES
                 )
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
-            with open("token.json", "w") as token:
+            with open(GCP_TOKEN_FILE_PATH, "w") as token:
                 token.write(creds.to_json())
 
         service = build("drive", "v3", credentials=creds)
@@ -183,6 +191,7 @@ def categorize_files(files):
             "name": file.get("name"),
             "path": file_path,
             "mimeType": mime_type,
+            "category": category,
             "size": file.get("size", "Unknown"),
         }
 
@@ -229,7 +238,9 @@ def gather_valid_gdrive_files(gdrive_service):
 def process_gdrive_files(gdrive_service, organized_file_collection):
     for file_type, files_metadata in organized_file_collection.items():
         for file_metadata in files_metadata:
-            process_gdrive_file(gdrive_service, file_type, file_metadata)
+            all_indicators = extract_indicators_from_gdrive_file(
+                gdrive_service, file_type, file_metadata
+            )
 
 
 def main():
