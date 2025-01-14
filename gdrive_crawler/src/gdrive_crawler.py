@@ -120,6 +120,14 @@ def list_all_files(gdrive_service):
                     "Work Stuff",
                 ]
 
+                # This works in tandem with ignored folders
+                ONLY_SEARCH_FILES = ["NGC_Letter.pdf"]
+
+                SEARCH_FILTER_FILE_MODE = False
+
+                if ONLY_SEARCH_FILES:
+                    SEARCH_FILTER_FILE_MODE = True
+
                 if (
                     file["mimeType"] == "application/vnd.google-apps.folder"
                     and file["name"] not in IGNORE_FILES_AND_FOLDERS
@@ -133,11 +141,17 @@ def list_all_files(gdrive_service):
                             f"Ignoring folder {file['name']} due to file exclusion settings."
                         )
                         continue
-                    if file["mimeType"] not in MIME_FILE_TYPES_TO_SCAN:
+                    elif file["mimeType"] not in MIME_FILE_TYPES_TO_SCAN:
                         print(
                             f"Ignoring file {file['name']} due to file ending settings."
                         )
                         continue
+                    elif SEARCH_FILTER_FILE_MODE:
+                        if file["name"] not in ONLY_SEARCH_FILES:
+                            print(
+                                f"Ignoring file {file['name']} due to SEARCH_FILTER_FILE_MODE being enabled."
+                            )
+                            continue
                     file["path"] = file_path
                     results.append(file)
 

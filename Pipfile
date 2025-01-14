@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 google = "*"
+pandas = "*"
 
 [dev-packages]
 
