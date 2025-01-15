@@ -494,18 +494,17 @@ class TestDetectFilePathIndicator(unittest.TestCase):
 
 
 class TestIOCTyper(unittest.TestCase):
-    def test_fang_indicator_conversion(self):
+    def test_refang_indicator_conversion(self):
         typer = IOCTyper("")
         self.assertEqual(
-            typer.fang_indicator("hxxp://example.com"), "http://example.com"
+            typer.refang_indicator("hxxp://example.com"), "http://example.com"
         )
         self.assertEqual(
-            typer.fang_indicator("hxxps://example.com"), "https://example.com"
+            typer.refang_indicator("hxxps://example.com"), "https://example.com"
         )
-        self.assertEqual(typer.fang_indicator("(example).com"), "example.com")
-        self.assertEqual(typer.fang_indicator("[example].com"), "example.com")
-        self.assertEqual(typer.fang_indicator("{example}.com"), "example.com")
-        self.assertEqual(typer.fang_indicator("\nexample,com\r"), "example.com")
+        self.assertEqual(typer.refang_indicator("(example).com"), "example.com")
+        self.assertEqual(typer.refang_indicator("[example].com"), "example.com")
+        self.assertEqual(typer.refang_indicator("{example}.com"), "example.com")
 
     def test_dynamically_interpret_type_ipv4(self):
         typer = IOCTyper("")

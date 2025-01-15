@@ -14,11 +14,11 @@ from ioc_flagger.src.indicator_checks import detect_user_agent_indicator
 
 
 class IOCTyper:
-    def fang_indicator(self, ioc_value: str):
+    def refang_indicator(self, ioc_value: str):
         return (
             ioc_value.replace("hxxp", "http")
             .replace("hxxps", "https")
-            .replace(",", ".")
+            .replace(",", "")
             .replace("(", "")
             .replace(")", "")
             .replace("[", "")
@@ -28,12 +28,15 @@ class IOCTyper:
             .replace("\n", "")
             .replace("\r", "")
             .replace(" ", "")
+            # Clean Markdown strings
+            .replace("```", "")
+            .replace("-----", "")
+            .replace("#", "")
             .strip()
         )
 
-    def dynamically_interpret_type(self, ioc_value: str, fang_indicator=True):
-        if fang_indicator:
-            ioc_value = ioc_value.strip("[]")
+    def dynamically_interpret_type(self, ioc_value: str):
+        # TODO: Allow manual disable and enable of various types
         # Applying Typing in order from easiest to detect to least easy to detect
         if detect_ipv4_indicator(ioc_value):
             return "IPv4"
@@ -70,5 +73,5 @@ class IOCTyper:
             self.ioc_value = ioc_value
             self.ioc_type = ioc_type
         else:
-            self.ioc_value = ioc_value
-            self.ioc_type = self.dynamically_interpret_type(ioc_value)
+            self.ioc_value = self.refang_indicator(ioc_value)
+            self.ioc_type = self.dynamically_interpret_type(self.ioc_value)

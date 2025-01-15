@@ -121,7 +121,7 @@ def list_all_files(gdrive_service):
                 ]
 
                 # This works in tandem with ignored folders
-                ONLY_SEARCH_FILES = ["NGC_Letter.pdf"]
+                ONLY_SEARCH_FILES = ["DELETE_ME_GDOCS"]
 
                 SEARCH_FILTER_FILE_MODE = False
 
