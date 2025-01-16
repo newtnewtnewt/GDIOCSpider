@@ -8,11 +8,13 @@ class DataBank:
         # TODO: Mark the markdown indicating you need to curl this
         # I'm not going to provide it
         rock_you_location = os.path.join(ROOT_DIR, "rockyou.txt")
-        rock_you_list = set(
-            line.strip() for line in open(rock_you_location, encoding="latin-1")
+        rock_you_list = list(
+            set(line.strip() for line in open(rock_you_location, encoding="latin-1"))
         )
         # The special character barrage is making this dicey
         rock_you_list.remove("")
+        # This is done to ensure consistency
+        rock_you_list.sort()
         return rock_you_list
 
     def load_valid_domain_endings(self):

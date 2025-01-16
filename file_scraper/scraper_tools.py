@@ -9,6 +9,7 @@ from ioc_flagger.src.ioc_flagger import IOCTyper
 
 # TODO: Swap this to a settings variable
 # PERMITTED_DELIMITERS_TO_CHECK_AGAINST = [",", "\n", "\r", ":", "|", " "]
+# Use a replace and split roll:
 PERMITTED_DELIMITERS_TO_CHECK_AGAINST = [" "]
 
 

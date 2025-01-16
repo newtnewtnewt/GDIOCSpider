@@ -56,14 +56,14 @@ class IOCTyper:
             return "Registry Key"
         elif detect_user_agent_indicator(ioc_value):
             return "User Agent"
-        elif detect_password_indicator(ioc_value):
-            return "Password"
         elif detect_domain_name_indicator(ioc_value):
             return "Domain Name"
         elif detect_file_name_indicator(ioc_value):
             return "File Name"
         elif detect_file_path_indicator(ioc_value):
             return "File Path"
+        elif detect_password_indicator(ioc_value):
+            return "Password"
 
         return "Unknown"
 
