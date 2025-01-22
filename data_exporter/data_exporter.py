@@ -2,6 +2,18 @@ import csv
 
 
 def export_all_indicator_data_to_csv(indicator_data):
+    """
+    The final stage that writes all the data collected from scanning the GDrive
+    into a CSV file.
+
+    Args:
+        indicator_data: A dictionary compromised of all indicators discovered and related file metadata
+
+    Returns:
+        N/A
+
+    """
+
     # Define the CSV file header
     header = [
         "Indicator Value",

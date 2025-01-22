@@ -13,6 +13,18 @@ from file_scraper.scraper_tools import (
 
 
 def download_file_from_gdrive(gdrive_service, file_metadata):
+    """
+    Downloads a file from Google Drive and saves it to the data_dumpster directory. It
+    will be deleted after all the indicators are extracted from it or if the file cannot be processed
+
+    Args:
+        gdrive_service: GDrive API service object used to download the files
+        file_metadata: Information about the file being downloaded, including its ID, name, and MIME type.
+
+    Returns:
+        The full file path to the file that was downloaded. If the download fails, an empty string is returned.
+
+    """
     file_id = file_metadata.get("id")
     file_name = file_metadata.get("name", "unknown_file")
     mime_type = file_metadata.get("mimeType", "unknown_type")
@@ -66,6 +78,17 @@ def download_file_from_gdrive(gdrive_service, file_metadata):
 
 
 def delete_downloaded_file(downloaded_file_path):
+    """
+    Deletes the file downloaded to data_dumpster
+
+    Args:
+        downloaded_file_path: Path to the downloaded file.
+
+    Returns:
+        N/A
+
+    """
+
     try:
         if os.path.exists(downloaded_file_path):
             os.remove(downloaded_file_path)
@@ -81,6 +104,19 @@ def delete_downloaded_file(downloaded_file_path):
 def extract_indicators_from_downloaded_file(
     downloaded_file_path, file_type, file_metadata
 ):
+    """
+    Pulls indicators from a downloaded file and returns them as a list of dictionaries
+
+    Args:
+        downloaded_file_path: Where the file to be analyzed is located
+        file_type: Human-readable name of the file type, such as "Text File" or "Python Script"
+        file_metadata: All the associated metadata about the file, including its ID, name, and MIME type.
+
+    Returns:
+        A list of dictionaries containing the extracted indicators and their types.
+
+    """
+
     extracted_indicators = {}
 
     if (
@@ -120,6 +156,20 @@ def extract_indicators_from_downloaded_file(
 
 
 def append_count_instances_of_ioc_in_document(extracted_indicators):
+    """
+    A summarizer helper function that gathers quantity data before exporting to CSV,
+    including the counts of each indicator/type pairing per file
+
+    Also prints summary file to console
+
+    Args:
+        extracted_indicators: List of dictionaries containing the extracted indicators and their types.
+
+    Returns:
+        An amended version of extracted_indicators with count data appended to each indicator.
+
+    """
+
     value_type_dict = {}
     value_count_dict = {}
     type_count_dict = {}
@@ -157,6 +207,19 @@ def append_count_instances_of_ioc_in_document(extracted_indicators):
 
 
 def extract_indicators_from_gdrive_file(gdrive_service, file_type, file_metadata):
+    """
+    The main workhorse function for intaking a gdrive file, and outputting a list of dictionaries
+    of indicator data
+
+    Args:
+        gdrive_service: The Google Drive API service object used to download the file.
+        file_type: A human-readable name of the file type, such as "Text File" or "Python Script".
+        file_metadata: A dictionary containing metadata about the file, including its ID, name, and MIME type.
+
+    Returns:
+        A list of dictionaries containing the extracted indicators and their types.
+
+    """
     downloaded_file_path = download_file_from_gdrive(gdrive_service, file_metadata)
     extracted_indicators = extract_indicators_from_downloaded_file(
         downloaded_file_path, file_type, file_metadata
