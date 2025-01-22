@@ -1,21 +1,19 @@
 import os
 
+from settings import KEYWORD_FILES_TO_USE
+
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class DataBank:
-    def load_password_data(self):
-        # TODO: Mark the markdown indicating you need to curl this
-        # I'm not going to provide it
-        rock_you_location = os.path.join(ROOT_DIR, "rockyou.txt")
-        rock_you_list = list(
-            set(line.strip() for line in open(rock_you_location, encoding="latin-1"))
-        )
-        # The special character barrage is making this dicey
-        rock_you_list.remove("")
-        # This is done to ensure consistency
-        rock_you_list.sort()
-        return rock_you_list
+    def load_keyword_data(self):
+        keywords_to_scan_for = []
+        for file in KEYWORD_FILES_TO_USE:
+            keyword_file_location = os.path.join(ROOT_DIR, file)
+            with open(keyword_file_location) as f:
+                keywords_to_scan_for.extend(f.read().splitlines())
+        keywords_to_scan_for = list(set(keywords_to_scan_for))
+        return keywords_to_scan_for
 
     def load_valid_domain_endings(self):
         from ioc_flagger.src.data_bank.valid_domain_endings import VALID_TLDS
@@ -27,5 +25,9 @@ class DataBank:
         return VALID_TLDS
 
     def __init__(self):
-        self.password_data = self.load_password_data()
+        self.keyword_data = self.load_keyword_data()
         self.valid_domain_endings = self.load_valid_domain_endings()
+
+
+# Craft a singleton to prevent circular imports
+data_bank = DataBank()

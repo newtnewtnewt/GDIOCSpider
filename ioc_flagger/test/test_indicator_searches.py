@@ -1,6 +1,5 @@
 import unittest
 
-from ioc_flagger.src.data_bank.io_databank import DataBank
 from ioc_flagger.src.indicator_searches import (
     _search_for_match_in_string,
     find_ipv4_indicator,
@@ -12,7 +11,6 @@ from ioc_flagger.src.indicator_searches import (
     find_email_indicator,
     find_registry_key_indicator,
     find_user_agent_indicator,
-    find_password_indicator,
     find_domain_name_indicator,
     find_url_indicator,
     find_file_name_indicator,
@@ -101,6 +99,9 @@ class TestFindIPv4Indicator(unittest.TestCase):
             find_ipv4_indicator("Use 10.0.0.1 for testing"), (True, "10.0.0.1")
         )
         self.assertEqual(find_ipv4_indicator("There is no IP here 123"), (False, ""))
+        self.assertEqual(
+            find_ipv4_indicator("172.16.254.1Furth"), (True, "172.16.254.1")
+        )
 
 
 class TestFindIPv6IndicatorInSentences(unittest.TestCase):
@@ -455,7 +456,7 @@ class TestFindUserAgentIndicator(unittest.TestCase):
         )
 
 
-# Leaving password out for now, it increases test build time
+# Leaving keyword out for now, it increases test build time
 
 
 class TestFindDomainNameIndicator(unittest.TestCase):

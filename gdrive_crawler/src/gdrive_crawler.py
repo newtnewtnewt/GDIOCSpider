@@ -6,7 +6,13 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from data_exporter.data_exporter import export_all_indicator_data_to_csv
 from file_scraper.file_scraper import extract_indicators_from_gdrive_file
+from settings import (
+    ONLY_SEARCH_FILES,
+    IGNORE_FILES_AND_FOLDERS,
+    MIME_FILE_TYPES_TO_SCAN,
+)
 
 # Scopes for Google Drive API
 # https://developers.google.com/drive/api/quickstart/python
@@ -100,28 +106,6 @@ def list_all_files(gdrive_service):
 
             for file in response.get("files", []):
                 file_path = f"{parent_path}/{file['name']}"
-                # TODO: Pull this in from a settings file
-                # https://mimetype.io/all-types
-                MIME_FILE_TYPES_TO_SCAN = [
-                    "text/plain",
-                    "text/csv",
-                    "application/pdf",
-                    "application/json",
-                    "application/vnd.google-apps.presentation",
-                    "application/vnd.google-apps.document",
-                    "text/x-python",
-                    "application/vnd.google-apps.spreadsheet",
-                ]
-                # IGNORE_FILES_AND_FOLDERS = ["old_school_stuff"]
-                IGNORE_FILES_AND_FOLDERS = [
-                    "Misc",
-                    "Reference Letters",
-                    "School",
-                    "Work Stuff",
-                ]
-
-                # This works in tandem with ignored folders
-                ONLY_SEARCH_FILES = ["DELETE_ME_GDOCS"]
 
                 SEARCH_FILTER_FILE_MODE = False
 
@@ -250,17 +234,29 @@ def gather_valid_gdrive_files(gdrive_service):
 
 
 def process_gdrive_files(gdrive_service, organized_file_collection):
+    all_processed_data = []
     for file_type, files_metadata in organized_file_collection.items():
         for file_metadata in files_metadata:
             all_indicators = extract_indicators_from_gdrive_file(
                 gdrive_service, file_type, file_metadata
             )
+            all_processed_data.append(
+                {
+                    "file_type": file_type,
+                    "file_metadata": file_metadata,
+                    "all_indicators": all_indicators,
+                }
+            )
+    return all_processed_data
 
 
 def main():
     gdrive_service = get_gdrive_service_object()
     organized_file_collection = gather_valid_gdrive_files(gdrive_service)
-    process_gdrive_files(gdrive_service, organized_file_collection)
+    finalized_processed_data = process_gdrive_files(
+        gdrive_service, organized_file_collection
+    )
+    export_all_indicator_data_to_csv(finalized_processed_data)
 
 
 if __name__ == "__main__":

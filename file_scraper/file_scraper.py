@@ -69,12 +69,12 @@ def delete_downloaded_file(downloaded_file_path):
     try:
         if os.path.exists(downloaded_file_path):
             os.remove(downloaded_file_path)
-            print(f"Deleted downloaded file: {downloaded_file_path}")
+            print(f"Deleted downloaded file: {downloaded_file_path}\n")
         else:
-            print(f"File not found: {downloaded_file_path}")
+            print(f"File not found: {downloaded_file_path}\n")
     except Exception as e:
         print(
-            f"An error occurred while trying to delete the file: {downloaded_file_path}. Error: {e}"
+            f"An error occurred while trying to delete the file: {downloaded_file_path}. Error: {e}\n"
         )
 
 
@@ -119,9 +119,50 @@ def extract_indicators_from_downloaded_file(
     return extracted_indicators
 
 
+def append_count_instances_of_ioc_in_document(extracted_indicators):
+    value_type_dict = {}
+    value_count_dict = {}
+    type_count_dict = {}
+    final_indicator_records = []
+    total_count = 0
+
+    for indicator in extracted_indicators:
+        value_type_dict[indicator["value"]] = indicator["type"]
+        if indicator["value"] in value_count_dict:
+            value_count_dict[indicator["value"]] += 1
+        else:
+            value_count_dict[indicator["value"]] = 1
+        if indicator["type"] in type_count_dict:
+            type_count_dict[indicator["type"]] += 1
+            total_count += 1
+        else:
+            type_count_dict[indicator["type"]] = 1
+            total_count += 1
+
+    for value, type in value_type_dict.items():
+        final_indicator_records.append(
+            {
+                "value": value,
+                "type": type,
+                "count": value_count_dict[value],
+            }
+        )
+
+    type_count_string = ""
+    for type, count in type_count_dict.items():
+        type_count_string += f", {type}: {count}"
+    print(f"Total IOC Count: {total_count}{type_count_string}")
+
+    return final_indicator_records
+
+
 def extract_indicators_from_gdrive_file(gdrive_service, file_type, file_metadata):
     downloaded_file_path = download_file_from_gdrive(gdrive_service, file_metadata)
     extracted_indicators = extract_indicators_from_downloaded_file(
         downloaded_file_path, file_type, file_metadata
     )
+    extracted_indicators = append_count_instances_of_ioc_in_document(
+        extracted_indicators
+    )
     delete_downloaded_file(downloaded_file_path)
+    return extracted_indicators

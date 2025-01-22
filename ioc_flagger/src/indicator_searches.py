@@ -1,10 +1,6 @@
 import re
-import regex as rex
 
-from ioc_flagger.src.data_bank.io_databank import DataBank
-
-data_bank = DataBank()
-
+from ioc_flagger.src.data_bank.io_databank import data_bank
 from ioc_flagger.src.ioc_patterns import (
     IPv4_PATTERN,
     IPv6_PATTERN,
@@ -21,6 +17,7 @@ from ioc_flagger.src.ioc_patterns import (
     WINDOWS_PATH_PATTERN,
     LINUX_PATH_PATTERN,
 )
+from settings import SEARCH_EXCLUSION_LIST
 
 
 def _search_for_match_in_string(ioc_pattern: re.Pattern, ioc_value: str) -> (bool, str):
@@ -67,10 +64,10 @@ def find_user_agent_indicator(ioc_value: str) -> (bool, str):
     return _search_for_match_in_string(USER_AGENT_PATTERN, ioc_value)
 
 
-def find_password_indicator(ioc_value: str) -> (bool, str):
-    for password in data_bank.password_data:
-        if password in ioc_value:
-            return True, password
+def find_keyword_indicator(ioc_value: str) -> (bool, str):
+    for keyword in data_bank.keyword_data:
+        if keyword in ioc_value:
+            return True, keyword
     return False, ""
 
 
@@ -79,6 +76,7 @@ def find_domain_name_indicator(ioc_value: str) -> (bool, str):
         match_found, matching_string = _search_for_match_in_string(
             DOMAIN_PATTERN, ioc_value
         )
+
         if matching_string:
             if matching_string.upper().split(".")[-1] in data_bank.valid_domain_endings:
                 return match_found, matching_string
@@ -109,3 +107,32 @@ def find_file_path_indicator(ioc_value: str) -> (bool, str):
         LINUX_PATH_PATTERN, ioc_value
     )
     return match_found, matching_string
+
+
+def search_for_ioc_and_type(potential_ioc_value: str) -> (str, str):
+    # List of tuples mapping IOC type to corresponding function
+    ioc_functions = [
+        ("IPv4", find_ipv4_indicator),
+        ("IPv6", find_ipv6_indicator),
+        ("SHA512", find_sha512_indicator),
+        ("SHA256", find_sha256_indicator),
+        ("SHA1", find_sha1_indicator),
+        ("MD5", find_md5_indicator),
+        ("Email", find_email_indicator),
+        ("Registry Key", find_registry_key_indicator),
+        ("User Agent", find_user_agent_indicator),
+        ("Domain Name", find_domain_name_indicator),
+        ("File Name", find_file_name_indicator),
+        ("File Path", find_file_path_indicator),
+        ("Keyword", find_keyword_indicator),
+    ]
+
+    # Iterate through the functions and return the first match
+    for ioc_type, function in ioc_functions:
+        if ioc_type not in SEARCH_EXCLUSION_LIST:
+            found_match, matching_str = function(potential_ioc_value)
+            if found_match:
+                return ioc_type, matching_str
+
+    # Default return value if no match is found
+    return "Unknown", ""
