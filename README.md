@@ -2,7 +2,8 @@
 
 **GDIOCSpider** is an open-source, configurable, Python Incident Response (IR) and Security Research tool specifically
 catered around
-IOC extraction and identification in poor data context. Taken as an end-to-end application, this tool crawls through a
+IOC extraction and identification in GDrives with poor data context. Taken as an end-to-end application, this tool
+crawls through a
 provided GDrive, extracts IOCs from all files
 processed, and outputs found results into a CSV file for research, analysis, and identification.
 
