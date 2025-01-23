@@ -6,7 +6,7 @@ import pandas as pd
 import pymupdf4llm
 from pymupdf import Document
 
-from ioc_flagger.src.ioc_flagger import IOCTyper
+from gdiocspider.ioc_flagger import IOCTyper
 from settings import IOC_TYPER_STRICT_MODE, PERMITTED_DELIMITERS_TO_CHECK_AGAINST
 
 

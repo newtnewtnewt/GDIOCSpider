@@ -1,0 +1,37 @@
+{
+  "SEARCH_EXCLUSION_LIST": [],
+  "IOC_TYPER_STRICT_MODE": false,
+  "PERMITTED_DELIMITERS_TO_CHECK_AGAINST": [
+    ",",
+    "\n",
+    "\r",
+    ":",
+    "|",
+    " "
+  ],
+  "MIME_FILE_TYPES_TO_SCAN": [
+    "text/plain",
+    "text/csv",
+    "application/pdf",
+    "application/json",
+    "application/vnd.google-apps.presentation",
+    "application/vnd.google-apps.document",
+    "text/x-python",
+    "application/vnd.google-apps.spreadsheet"
+  ],
+  "IGNORE_FILES_AND_FOLDERS": [
+    "Misc",
+    "Reference Letters",
+    "School",
+    "Work Stuff"
+  ],
+  "ONLY_SEARCH_FILES": [],
+  "KEYWORD_FILES_TO_USE": [
+    "keywords.txt"
+  ],
+  "DEFANG_BEFORE_EXPORT": true,
+  "GCP_TOKEN_FILE_PATH": "token.json",
+  "GCP_CREDENTIALS_FILE_PATH": "credentials.json",
+  "USE_SERVICE_ACCOUNT": false,
+  "GCP_SERVICE_ACCOUNT_FILE": "token.json"
+}

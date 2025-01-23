@@ -1,7 +1,7 @@
 import re
 
-from ioc_flagger.src.data_bank.io_databank import data_bank
-from ioc_flagger.src.ioc_patterns import (
+from gdiocspider.io_databank import data_bank
+from gdiocspider.ioc_patterns import (
     IPv4_PATTERN,
     IPv6_PATTERN,
     MD5_PATTERN,

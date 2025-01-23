@@ -16,7 +16,7 @@ class DataBank:
         return keywords_to_scan_for
 
     def load_valid_domain_endings(self):
-        from ioc_flagger.src.data_bank.valid_domain_endings import VALID_TLDS
+        from gdiocspider.valid_domain_endings import VALID_TLDS
 
         # NOTE: we remove zip and py here. malware.py the website is indistinguishable from malware.py the domain
         # We assume it's a file, but further investigation may prove this false

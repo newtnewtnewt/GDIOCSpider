@@ -35,7 +35,7 @@ This will only search for IOC presence in the files listed in ONLY_SEARCH_FILES,
 ignoring the folders listed in IGNORE_FILES_AND_FOLDERS.
 
 KEYWORD_FILES_TO_USE: A list of strings of filenames. All text files listed here will be added to a dictionary of keywords
-to check for if present in the files scanned for. These files need to be placed in the folder at ioc_flagger/src/data_bank
+to check for if present in the files scanned for. These files need to be placed in the folder at gdiocspider/
 
 DEFANG_BEFORE_EXPORT: Defangs all indicators before sending them back to the user if set to True. This is specifically important
 for domains and file names
@@ -50,15 +50,19 @@ Will not be used if USE_SERVICE_ACCOUNT is False.
 
 """
 
-import os
+import json
 
-SEARCH_EXCLUSION_LIST = os.getenv("SEARCH_EXCLUSION_LIST", [""])
-IOC_TYPER_STRICT_MODE = os.getenv("IOC_TYPER_STRICT_MODE", False)
-PERMITTED_DELIMITERS_TO_CHECK_AGAINST = os.getenv(
+# Load configuration from config.json
+with open("config.json", "r") as config_file:
+    config = json.load(config_file)
+
+SEARCH_EXCLUSION_LIST = config.get("SEARCH_EXCLUSION_LIST", [""])
+IOC_TYPER_STRICT_MODE = config.get("IOC_TYPER_STRICT_MODE", False)
+PERMITTED_DELIMITERS_TO_CHECK_AGAINST = config.get(
     "PERMITTED_DELIMITERS_TO_CHECK_AGAINST", [",", "\n", "\r", ":", "|", " "]
 )
 
-MIME_FILE_TYPES_TO_SCAN = os.getenv(
+MIME_FILE_TYPES_TO_SCAN = config.get(
     "MIME_FILE_TYPES_TO_SCAN",
     [
         "text/plain",
@@ -72,7 +76,7 @@ MIME_FILE_TYPES_TO_SCAN = os.getenv(
     ],
 )
 
-IGNORE_FILES_AND_FOLDERS = os.getenv(
+IGNORE_FILES_AND_FOLDERS = config.get(
     "IGNORE_FILES_AND_FOLDERS",
     [
         "Misc",
@@ -82,20 +86,13 @@ IGNORE_FILES_AND_FOLDERS = os.getenv(
     ],
 )
 
-ONLY_SEARCH_FILES = os.getenv("ONLY_SEARCH_FILES", [])
+ONLY_SEARCH_FILES = config.get("ONLY_SEARCH_FILES", [])
 
-KEYWORD_FILES_TO_USE = os.getenv("KEYWORD_FILES_TO_USE", ["keywords.txt"])
+KEYWORD_FILES_TO_USE = config.get("KEYWORD_FILES_TO_USE", ["keywords.txt"])
 
-DEFANG_BEFORE_EXPORT = os.getenv("DEFANG_BEFORE_EXPORT", True)
+DEFANG_BEFORE_EXPORT = config.get("DEFANG_BEFORE_EXPORT", True)
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-GCP_TOKEN_FILE_PATH = os.getenv(
-    "GCP_TOKEN_FILE_PATH", os.path.join(ROOT_DIR, "token.json")
-)
-GCP_CREDENTIALS_FILE_PATH = os.getenv(
-    "GCP_CREDENTIALS_FILE_PATH", os.path.join(ROOT_DIR, "credentials.json")
-)
-USE_SERVICE_ACCOUNT = os.getenv("USE_SERVICE_ACCOUNT", False)
-GCP_SERVICE_ACCOUNT_FILE = os.getenv(
-    "GCP_SERVICE_ACCOUNT_FILE", os.path.join(ROOT_DIR, "token.json")
-)
+GCP_TOKEN_FILE_PATH = config.get("GCP_TOKEN_FILE_PATH", "token.json")
+GCP_CREDENTIALS_FILE_PATH = config.get("GCP_CREDENTIALS_FILE_PATH", "credentials.json")
+USE_SERVICE_ACCOUNT = config.get("USE_SERVICE_ACCOUNT", False)
+GCP_SERVICE_ACCOUNT_FILE = config.get("GCP_SERVICE_ACCOUNT_FILE", "token.json")

@@ -3,7 +3,7 @@ import os
 
 from googleapiclient.http import MediaIoBaseDownload
 
-from file_scraper.scraper_tools import (
+from gdiocspider.scraper_tools import (
     TextFileScraperParser,
     CSVFileScraperParser,
     PDFFileScraperParser,

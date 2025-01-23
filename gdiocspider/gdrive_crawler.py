@@ -7,8 +7,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2 import service_account
 
-from data_exporter.data_exporter import export_all_indicator_data_to_csv
-from file_scraper.file_scraper import extract_indicators_from_gdrive_file
+from gdiocspider.data_exporter import export_all_indicator_data_to_csv
+from gdiocspider.file_scraper import extract_indicators_from_gdrive_file
 from settings import (
     ONLY_SEARCH_FILES,
     IGNORE_FILES_AND_FOLDERS,

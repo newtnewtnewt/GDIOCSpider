@@ -59,3 +59,5 @@ def export_all_indicator_data_to_csv(indicator_data):
                         file_size,
                     ]
                 )
+
+    print("DONE! Finished exporting all indicator data to indicator_data.csv")

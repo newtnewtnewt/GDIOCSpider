@@ -1,0 +1,33 @@
+[project]
+name = "GDIOCSpider"
+version = "1.0.0"
+description = "A GDrive Crawler to search for IOCs inside files"
+authors = [
+    { name = "Noah Dunn" }
+]
+dependencies = [
+    "google-api-python-client==2.158.0",
+    "google-auth-oauthlib==1.2.1",
+    "google-auth-httplib2==0.2.0",
+    "openpyxl==3.1.5",
+    "pandas==2.2.3",
+    "PyMuPDF==1.25.1",
+    "pymupdf4llm==0.0.17"
+]
+
+[project.urls]
+Homepage = "https://github.com/newtnewtnewt/GDIOCSpider"
+
+[project.scripts]
+gdiocspider = 'main:main'
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+include = ["gdiocspider", "main.py", "settings.py"]
+exclude = ["markdown", "test*", "test_*"]

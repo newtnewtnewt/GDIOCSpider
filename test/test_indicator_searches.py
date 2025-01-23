@@ -1,6 +1,6 @@
 import unittest
 
-from ioc_flagger.src.indicator_searches import (
+from gdiocspider.indicator_searches import (
     _search_for_match_in_string,
     find_ipv4_indicator,
     find_ipv6_indicator,

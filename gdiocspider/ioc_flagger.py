@@ -1,5 +1,5 @@
-from ioc_flagger.src.indicator_checks import dynamically_interpret_strict_type
-from ioc_flagger.src.indicator_searches import search_for_ioc_and_type
+from gdiocspider.indicator_checks import dynamically_interpret_strict_type
+from gdiocspider.indicator_searches import search_for_ioc_and_type
 from settings import DEFANG_BEFORE_EXPORT
 
 

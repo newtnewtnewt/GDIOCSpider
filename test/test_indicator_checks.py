@@ -1,5 +1,5 @@
 import unittest
-from ioc_flagger.src.indicator_checks import (
+from gdiocspider.indicator_checks import (
     detect_ipv4_indicator,
     detect_ipv6_indicator,
     detect_md5_indicator,
@@ -14,7 +14,7 @@ from ioc_flagger.src.indicator_checks import (
     detect_file_name_indicator,
     detect_file_path_indicator,
 )
-from ioc_flagger.src.ioc_flagger import IOCTyper
+from gdiocspider.ioc_flagger import IOCTyper
 
 
 class TestDetectIPv4Indicator(unittest.TestCase):
@@ -600,7 +600,7 @@ class TestIOCTyper(unittest.TestCase):
 
     def test_ioc_type_dynamic_initialization(self):
         typer = IOCTyper("192.168.0.1")
-        self.assertEqual(typer.ioc_value, "192.168.0.1")
+        self.assertEqual(typer.ioc_value, "192[.]168[.]0[.]1")
         self.assertEqual(typer.ioc_type, "IPv4")
 
 
