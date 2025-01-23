@@ -112,8 +112,3 @@ def dynamically_interpret_strict_type(ioc_value: str) -> str:
 
     # Default return value if no match is found
     return "Unknown"
-
-
-# Maybe use some data to flag hostnames in here?
-
-# Maybe brute force some usernames in here?

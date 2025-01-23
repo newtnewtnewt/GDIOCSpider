@@ -5,6 +5,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from google.oauth2 import service_account
 
 from data_exporter.data_exporter import export_all_indicator_data_to_csv
 from file_scraper.file_scraper import extract_indicators_from_gdrive_file
@@ -12,6 +13,10 @@ from settings import (
     ONLY_SEARCH_FILES,
     IGNORE_FILES_AND_FOLDERS,
     MIME_FILE_TYPES_TO_SCAN,
+    GCP_TOKEN_FILE_PATH,
+    GCP_CREDENTIALS_FILE_PATH,
+    USE_SERVICE_ACCOUNT,
+    GCP_SERVICE_ACCOUNT_FILE,
 )
 
 # Scopes for Google Drive API
@@ -34,34 +39,41 @@ def authenticate_google_drive(token_path):
     """
     try:
         creds = None
-        ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-        GCP_TOKEN_FILE_PATH = os.getenv(
-            "GCP_TOKEN_FILE_PATH", os.path.join(ROOT_DIR, "token.json")
-        )
-        GCP_CREDENTIALS_FILE_PATH = os.getenv(
-            "GCP_CREDENTIALS_FILE_PATH", os.path.join(ROOT_DIR, "credentials.json")
-        )
 
         # The file token.json stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
         # time.
-        if os.path.exists(GCP_TOKEN_FILE_PATH):
-            creds = Credentials.from_authorized_user_file(GCP_TOKEN_FILE_PATH, SCOPES)
-        # If there are no (valid) credentials available, let the user log in.
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    GCP_CREDENTIALS_FILE_PATH, SCOPES
+        if USE_SERVICE_ACCOUNT:
+            if os.path.exists(GCP_TOKEN_FILE_PATH):
+                creds = service_account.Credentials.from_service_account_file(
+                    filename=GCP_SERVICE_ACCOUNT_FILE, scopes=SCOPES
                 )
-                creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-            with open(GCP_TOKEN_FILE_PATH, "w") as token:
-                token.write(creds.to_json())
+                service = build("drive", "v3", credentials=creds)
+                return service
+            else:
+                print(
+                    f"Unable to locate service account credentials: {GCP_TOKEN_FILE_PATH}. If you're trying to use a user account, please set USE_SERVICE_ACCOUNT to False in settings.py. Exiting."
+                )
+        else:
+            if os.path.exists(GCP_TOKEN_FILE_PATH):
+                creds = Credentials.from_authorized_user_file(
+                    GCP_TOKEN_FILE_PATH, SCOPES
+                )
+            # If there are no (valid) credentials available, let the user log in.
+            if not creds or not creds.valid:
+                if creds and creds.expired and creds.refresh_token:
+                    creds.refresh(Request())
+                else:
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                        GCP_CREDENTIALS_FILE_PATH, SCOPES
+                    )
+                    creds = flow.run_local_server(port=0)
+                # Save the credentials for the next run
+                with open(GCP_TOKEN_FILE_PATH, "w") as token:
+                    token.write(creds.to_json())
 
-        service = build("drive", "v3", credentials=creds)
-        return service
+            service = build("drive", "v3", credentials=creds)
+            return service
     except Exception as e:
         print(f"Error during authentication: {e}")
         return None
@@ -206,6 +218,16 @@ def categorize_files(files):
 
 
 def get_gdrive_service_object():
+    """
+    Use the token.json file to authenticate with Google Drive, if not present
+    this will pull open a new browser window to authenticate, as long as you've correctly
+    configured the GCloud Application using the setup
+
+    Returns:
+        GDrive object to perform actions
+
+    """
+
     ROOT_DIR = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     )
@@ -218,10 +240,21 @@ def get_gdrive_service_object():
         print(
             f"Was unable to authenticate with Google Drive at path {GCP_TOKEN_FILE_PATH}, if an old token.json is present, delete and re-run"
         )
+        return None
     return service
 
 
 def gather_valid_gdrive_files(gdrive_service):
+    """
+    This grabs all the valid files according to the settings and then categorizes them.
+
+    Args:
+        gdrive_service: A service object for interacting with Google Drive.
+
+    Returns:
+        The dictionary of all files with their associated metadata
+
+    """
     files = list_all_files(gdrive_service)
 
     if not files:
@@ -234,6 +267,17 @@ def gather_valid_gdrive_files(gdrive_service):
 
 
 def process_gdrive_files(gdrive_service, organized_file_collection):
+    """
+    Perform IOC extraction on all identified files
+
+    Args:
+        gdrive_service: A service object for interacting with Google Drive.
+        organized_file_collection: A dictionary of all files with their associated metadata.
+
+    Returns:
+        Indicators with associated file type and metadata
+
+    """
     all_processed_data = []
     for file_type, files_metadata in organized_file_collection.items():
         for file_metadata in files_metadata:
@@ -250,14 +294,15 @@ def process_gdrive_files(gdrive_service, organized_file_collection):
     return all_processed_data
 
 
-def main():
+def execute_gdrive_crawler():
+    """
+    The function that handles everything
+    """
     gdrive_service = get_gdrive_service_object()
+    if not gdrive_service:
+        exit()
     organized_file_collection = gather_valid_gdrive_files(gdrive_service)
     finalized_processed_data = process_gdrive_files(
         gdrive_service, organized_file_collection
     )
     export_all_indicator_data_to_csv(finalized_processed_data)
-
-
-if __name__ == "__main__":
-    main()
