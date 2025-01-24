@@ -1,23 +1,16 @@
+import argparse
 import os
 
 from google.auth.transport.requests import Request
+from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from google.oauth2 import service_account
 
 from gdiocspider.data_exporter import export_all_indicator_data_to_csv
 from gdiocspider.file_scraper import extract_indicators_from_gdrive_file
-from settings import (
-    ONLY_SEARCH_FILES,
-    IGNORE_FILES_AND_FOLDERS,
-    MIME_FILE_TYPES_TO_SCAN,
-    GCP_TOKEN_FILE_PATH,
-    GCP_CREDENTIALS_FILE_PATH,
-    USE_SERVICE_ACCOUNT,
-    GCP_SERVICE_ACCOUNT_FILE,
-)
+from gdiocspider.settings import settings_store
 
 # Scopes for Google Drive API
 # https://developers.google.com/drive/api/quickstart/python
@@ -43,21 +36,21 @@ def authenticate_google_drive(token_path):
         # The file token.json stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
         # time.
-        if USE_SERVICE_ACCOUNT:
-            if os.path.exists(GCP_TOKEN_FILE_PATH):
+        if settings_store.USE_SERVICE_ACCOUNT:
+            if os.path.exists(settings_store.GCP_TOKEN_FILE_PATH):
                 creds = service_account.Credentials.from_service_account_file(
-                    filename=GCP_SERVICE_ACCOUNT_FILE, scopes=SCOPES
+                    filename=settings_store.GCP_SERVICE_ACCOUNT_FILE, scopes=SCOPES
                 )
                 service = build("drive", "v3", credentials=creds)
                 return service
             else:
                 print(
-                    f"Unable to locate service account credentials: {GCP_TOKEN_FILE_PATH}. If you're trying to use a user account, please set USE_SERVICE_ACCOUNT to False in settings.py. Exiting."
+                    f"Unable to locate service account credentials: {settings_store.GCP_TOKEN_FILE_PATH}. If you're trying to use a user account, please set USE_SERVICE_ACCOUNT to False in settings.py. Exiting."
                 )
         else:
-            if os.path.exists(GCP_TOKEN_FILE_PATH):
+            if os.path.exists(settings_store.GCP_TOKEN_FILE_PATH):
                 creds = Credentials.from_authorized_user_file(
-                    GCP_TOKEN_FILE_PATH, SCOPES
+                    settings_store.GCP_TOKEN_FILE_PATH, SCOPES
                 )
             # If there are no (valid) credentials available, let the user log in.
             if not creds or not creds.valid:
@@ -65,11 +58,11 @@ def authenticate_google_drive(token_path):
                     creds.refresh(Request())
                 else:
                     flow = InstalledAppFlow.from_client_secrets_file(
-                        GCP_CREDENTIALS_FILE_PATH, SCOPES
+                        settings_store.GCP_CREDENTIALS_FILE_PATH, SCOPES
                     )
                     creds = flow.run_local_server(port=0)
                 # Save the credentials for the next run
-                with open(GCP_TOKEN_FILE_PATH, "w") as token:
+                with open(settings_store.GCP_TOKEN_FILE_PATH, "w") as token:
                     token.write(creds.to_json())
 
             service = build("drive", "v3", credentials=creds)
@@ -121,29 +114,29 @@ def list_all_files(gdrive_service):
 
                 SEARCH_FILTER_FILE_MODE = False
 
-                if ONLY_SEARCH_FILES:
+                if settings_store.ONLY_SEARCH_FILES:
                     SEARCH_FILTER_FILE_MODE = True
 
                 if (
                     file["mimeType"] == "application/vnd.google-apps.folder"
-                    and file["name"] not in IGNORE_FILES_AND_FOLDERS
+                    and file["name"] not in settings_store.IGNORE_FILES_AND_FOLDERS
                 ):
                     # Recursively process folders
                     print(f"Searching folder {file_path} for more files...")
                     results.extend(fetch_files_in_folder(file["id"], file_path))
                 else:
-                    if file["name"] in IGNORE_FILES_AND_FOLDERS:
+                    if file["name"] in settings_store.IGNORE_FILES_AND_FOLDERS:
                         print(
                             f"Ignoring folder {file['name']} due to file exclusion settings."
                         )
                         continue
-                    elif file["mimeType"] not in MIME_FILE_TYPES_TO_SCAN:
+                    elif file["mimeType"] not in settings_store.MIME_FILE_TYPES_TO_SCAN:
                         print(
                             f"Ignoring file {file['name']} due to file ending settings."
                         )
                         continue
                     elif SEARCH_FILTER_FILE_MODE:
-                        if file["name"] not in ONLY_SEARCH_FILES:
+                        if file["name"] not in settings_store.ONLY_SEARCH_FILES:
                             print(
                                 f"Ignoring file {file['name']} due to SEARCH_FILTER_FILE_MODE being enabled."
                             )
@@ -213,7 +206,7 @@ def categorize_files(files):
         print(f"\n{category} ({len(files_list)}):")
         for file_meta in files_list:
             print(file_meta["path"])
-
+    print()
     return categorized_files
 
 
@@ -306,3 +299,33 @@ def execute_gdrive_crawler():
         gdrive_service, organized_file_collection
     )
     export_all_indicator_data_to_csv(finalized_processed_data)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Google Drive Crawler Script")
+    parser.add_argument(
+        "--config_file",
+        type=str,
+        required=True,
+        help="Absolute path to the configuration file: /gdiocspider/config.json",
+    )
+    parser.add_argument(
+        "--output_file",
+        type=str,
+        required=True,
+        help="Absolute path to where the output file will be output: /gdiocspider/indicator_data.csv",
+    )
+
+    args = parser.parse_args()
+
+    settings_store.update_file_path(args.config_file)
+    settings_store.update_output_file_path(args.output_file)
+    settings_store.initialize_settings()
+
+    # Pass arguments to the execute_gdrive_crawler function if needed in the future
+    print(f"Beginning GDIOCSpider with {args.config_file}, {args.output_file}\n\n")
+    execute_gdrive_crawler()
+
+
+if __name__ == "__main__":
+    main()

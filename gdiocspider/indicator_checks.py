@@ -16,7 +16,7 @@ from gdiocspider.ioc_patterns import (
     WINDOWS_PATH_PATTERN,
     LINUX_PATH_PATTERN,
 )
-from settings import SEARCH_EXCLUSION_LIST
+from gdiocspider.settings import settings_store
 
 
 def detect_ipv4_indicator(ioc_value: str) -> bool:
@@ -107,7 +107,7 @@ def dynamically_interpret_strict_type(ioc_value: str) -> str:
 
     # Iterate through the detection functions and return the first match
     for ioc_type, function in detection_functions:
-        if ioc_type not in SEARCH_EXCLUSION_LIST and function(ioc_value):
+        if ioc_type not in settings_store.SEARCH_EXCLUSION_LIST and function(ioc_value):
             return ioc_type
 
     # Default return value if no match is found

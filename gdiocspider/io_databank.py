@@ -1,17 +1,19 @@
 import os
 
-from settings import KEYWORD_FILES_TO_USE
-
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+from gdiocspider.settings import settings_store
 
 
 class DataBank:
     def load_keyword_data(self):
         keywords_to_scan_for = []
-        for file in KEYWORD_FILES_TO_USE:
-            keyword_file_location = os.path.join(ROOT_DIR, file)
-            with open(keyword_file_location) as f:
-                keywords_to_scan_for.extend(f.read().splitlines())
+        for keyword_file_location in settings_store.KEYWORD_FILEPATHS_TO_USE:
+            try:
+                with open(keyword_file_location) as f:
+                    keywords_to_scan_for.extend(f.read().splitlines())
+            except FileNotFoundError:
+                print(
+                    f"Could not find keyword file at path {keyword_file_location}, ignoring."
+                )
         keywords_to_scan_for = list(set(keywords_to_scan_for))
         return keywords_to_scan_for
 

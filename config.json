@@ -26,12 +26,12 @@
     "Work Stuff"
   ],
   "ONLY_SEARCH_FILES": [],
-  "KEYWORD_FILES_TO_USE": [
-    "keywords.txt"
+  "KEYWORD_FILEPATHS_TO_USE": [
+    "C:\\Users\\newtn\\PycharmProjects\\GDIOCSpider\\gdiocspider\\keywords.txt"
   ],
   "DEFANG_BEFORE_EXPORT": true,
-  "GCP_TOKEN_FILE_PATH": "token.json",
-  "GCP_CREDENTIALS_FILE_PATH": "credentials.json",
+  "GCP_TOKEN_FILE_PATH": "C:\\Users\\newtn\\PycharmProjects\\GDIOCSpider\\gdiocspider\\token.json",
+  "GCP_CREDENTIALS_FILE_PATH": "C:\\Users\\newtn\\PycharmProjects\\GDIOCSpider\\credentials.json",
   "USE_SERVICE_ACCOUNT": false,
-  "GCP_SERVICE_ACCOUNT_FILE": "token.json"
+  "GCP_SERVICE_ACCOUNT_FILE_PATH": "C:\\Users\\newtn\\PycharmProjects\\GDIOCSpider\\gdiocspider\\token.json"
 }

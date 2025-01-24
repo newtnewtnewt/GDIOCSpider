@@ -7,7 +7,7 @@ import pymupdf4llm
 from pymupdf import Document
 
 from gdiocspider.ioc_flagger import IOCTyper
-from settings import IOC_TYPER_STRICT_MODE, PERMITTED_DELIMITERS_TO_CHECK_AGAINST
+from gdiocspider.settings import settings_store
 
 
 class TextFileScraperParser:
@@ -34,7 +34,7 @@ class TextFileScraperParser:
 
         for potential_ioc in file_contents:
             potential_typed_ioc = IOCTyper(
-                potential_ioc, strict_mode=IOC_TYPER_STRICT_MODE
+                potential_ioc, strict_mode=settings_store.IOC_TYPER_STRICT_MODE
             )
             if potential_typed_ioc.ioc_type != "Unknown":
                 all_iocs.append(
@@ -69,7 +69,7 @@ class TextFileScraperParser:
             else:
                 # Read as one giant string so we can parse in multiple ways
                 file_contents = f.read()
-            for delimiter in PERMITTED_DELIMITERS_TO_CHECK_AGAINST:
+            for delimiter in settings_store.PERMITTED_DELIMITERS_TO_CHECK_AGAINST:
                 file_contents = file_contents.replace(
                     delimiter, "(THIS_IS_GOING_TO_BE_SPLIT_AGAINST)"
                 )
@@ -98,7 +98,7 @@ class CSVFileScraperParser:
         all_iocs = []
         for potential_ioc in row_data:
             potential_typed_ioc = IOCTyper(
-                potential_ioc, strict_mode=IOC_TYPER_STRICT_MODE
+                potential_ioc, strict_mode=settings_store.IOC_TYPER_STRICT_MODE
             )
             if potential_typed_ioc.ioc_type != "Unknown":
                 all_iocs.append(
@@ -149,7 +149,9 @@ class JSONFileScraperParser:
         """
         found_iocs = []
         for key, value in data.items():
-            potential_typed_key = IOCTyper(str(key), strict_mode=IOC_TYPER_STRICT_MODE)
+            potential_typed_key = IOCTyper(
+                str(key), strict_mode=settings_store.IOC_TYPER_STRICT_MODE
+            )
             if potential_typed_key.ioc_type != "Unknown":
                 found_iocs.append(
                     {
@@ -167,7 +169,7 @@ class JSONFileScraperParser:
                 found_iocs.extend(self.check_list_for_iocs(value))
             else:
                 potential_typed_value = IOCTyper(
-                    str(value), strict_mode=IOC_TYPER_STRICT_MODE
+                    str(value), strict_mode=settings_store.IOC_TYPER_STRICT_MODE
                 )
                 if potential_typed_value.ioc_type != "Unknown":
                     found_iocs.append(
@@ -200,7 +202,7 @@ class JSONFileScraperParser:
                 found_iocs.extend(self.check_list_for_iocs(item))
             else:
                 potential_typed_item = IOCTyper(
-                    str(item), strict_mode=IOC_TYPER_STRICT_MODE
+                    str(item), strict_mode=settings_store.IOC_TYPER_STRICT_MODE
                 )
                 if potential_typed_item.ioc_type != "Unknown":
                     found_iocs.append(
@@ -254,7 +256,7 @@ class XLSXFileScraperParser:
         """
         all_iocs = []
         potential_typed_ioc = IOCTyper(
-            str(cell_value), strict_mode=IOC_TYPER_STRICT_MODE
+            str(cell_value), strict_mode=settings_store.IOC_TYPER_STRICT_MODE
         )
         if potential_typed_ioc.ioc_type != "Unknown":
             all_iocs.append(

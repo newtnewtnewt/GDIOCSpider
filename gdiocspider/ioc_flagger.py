@@ -1,6 +1,6 @@
 from gdiocspider.indicator_checks import dynamically_interpret_strict_type
 from gdiocspider.indicator_searches import search_for_ioc_and_type
-from settings import DEFANG_BEFORE_EXPORT
+from gdiocspider.settings import settings_store
 
 
 class IOCTyper:
@@ -62,7 +62,7 @@ class IOCTyper:
             self.ioc_type = self.dynamically_interpret_and_strictly_type_ioc(
                 self.ioc_value
             )
-            if DEFANG_BEFORE_EXPORT:
+            if settings_store.DEFANG_BEFORE_EXPORT:
                 self.ioc_value = self.defang_indicator(self.ioc_value)
         else:
             refanged_string = self.refang_indicator(ioc_value)

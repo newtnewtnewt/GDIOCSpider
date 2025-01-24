@@ -17,7 +17,7 @@ from gdiocspider.ioc_patterns import (
     WINDOWS_PATH_PATTERN,
     LINUX_PATH_PATTERN,
 )
-from settings import SEARCH_EXCLUSION_LIST
+from gdiocspider.settings import settings_store
 
 
 def _search_for_match_in_string(ioc_pattern: re.Pattern, ioc_value: str) -> (bool, str):
@@ -129,7 +129,7 @@ def search_for_ioc_and_type(potential_ioc_value: str) -> (str, str):
 
     # Iterate through the functions and return the first match
     for ioc_type, function in ioc_functions:
-        if ioc_type not in SEARCH_EXCLUSION_LIST:
+        if ioc_type not in settings_store.SEARCH_EXCLUSION_LIST:
             found_match, matching_str = function(potential_ioc_value)
             if found_match:
                 return ioc_type, matching_str

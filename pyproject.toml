@@ -19,7 +19,7 @@ dependencies = [
 Homepage = "https://github.com/newtnewtnewt/GDIOCSpider"
 
 [project.scripts]
-gdiocspider = 'main:main'
+gdiocspider = 'gdiocspider.gdrive_crawler:main'
 
 [build-system]
 requires = ["setuptools"]

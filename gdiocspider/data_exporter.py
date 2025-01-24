@@ -1,5 +1,7 @@
 import csv
 
+from gdiocspider.settings import settings_store
+
 
 def export_all_indicator_data_to_csv(indicator_data):
     """
@@ -27,7 +29,9 @@ def export_all_indicator_data_to_csv(indicator_data):
     ]
 
     # Open the output CSV file
-    with open("indicator_data.csv", mode="w", newline="", encoding="utf-8") as file:
+    with open(
+        settings_store.output_file_path, mode="w", newline="", encoding="utf-8"
+    ) as file:
         writer = csv.writer(file)
         writer.writerow(header)  # Write the header row
 
@@ -60,4 +64,6 @@ def export_all_indicator_data_to_csv(indicator_data):
                     ]
                 )
 
-    print("DONE! Finished exporting all indicator data to indicator_data.csv")
+    print(
+        f"DONE! Finished exporting all indicator data to {settings_store.output_file_path}"
+    )

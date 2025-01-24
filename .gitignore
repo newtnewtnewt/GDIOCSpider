@@ -172,7 +172,8 @@ cython_debug/
 rockyou.txt
 credentials.json
 service_credentials.json
-token.json
+gdiocspider/token.json
 data_dumpster
 keywords.txt
 indicator_data.csv
+config_private.json

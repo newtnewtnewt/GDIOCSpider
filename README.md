@@ -29,19 +29,17 @@ Service Account in GCP
 2. Create a new project and enable the [Google Drive API](https://support.google.com/googleapi/answer/6158841?hl=en).
 3. Either configure OAuth for
    a [personal account](https://console.cloud.google.com/apis/credentials/consent?pli=1&inv=1&invt=AbnkuQ&project=just-skyline-231218) (
-   Recommended) or Create a service
+   Recommended) and get credentials.json. Or Create a service
    account [using the steps here](https://developers.google.com/workspace/guides/create-credentials). You likely already
-   have this if you are involved in the GCP ecosystem.
+   have this if you are involved in the GCP ecosystem and get token.json.
 4. Clone this repo
 5. In the Root Directory, place your token.json file and credentials.json file (or potentially just your token.json if
    using a service account)
 6. (Optional) feel free to add a keywords.txt file to ioc_flagger/src/data_bank and configure in settings.py
 7. Examine settings.py for all settings. See if there's anything you want to change.
-8. Create a virtualenv with `virtualenv venv`
-9. Activate `source venv/bin/activate`
-10. Install the dependencies with `pip install -r requirements.txt`
-11. Run the script with `python run.py`
-12. This will require authorization of your custom application on first run
+8. Install with your choice of tool, i.e: `pip install ./GDIOCSpider`
+9. Run with required parameters: `gdiocspider --config_file="/tmp/config.json" --output_file="/tmp/indicator_data.csv"`
+10. This will require authorization of your custom application on first run
 
 # Supported IOC Types
 
