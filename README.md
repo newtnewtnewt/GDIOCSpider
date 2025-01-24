@@ -35,11 +35,10 @@ Service Account in GCP
 4. Clone this repo
 5. In the Root Directory, place your token.json file and credentials.json file (or potentially just your token.json if
    using a service account)
-6. (Optional) feel free to add a keywords.txt file to ioc_flagger/src/data_bank and configure in settings.py
-7. Examine settings.py for all settings. See if there's anything you want to change.
-8. Install with your choice of tool, i.e: `pip install ./GDIOCSpider`
-9. Run with required parameters: `gdiocspider --config_file="/tmp/config.json" --output_file="/tmp/indicator_data.csv"`
-10. This will require authorization of your custom application on first run
+6. Examine `settings.py` for all settings. See if there's anything you want to change in `config.json`.
+7. Install with your choice of tool, i.e: `pip install ./GDIOCSpider`
+8. Run with required parameters: `gdiocspider --config_file="/tmp/config.json" --output_file="/tmp/indicator_data.csv"`
+9. This will require authorization of your custom application on first run
 
 # Supported IOC Types
 
@@ -77,3 +76,4 @@ The current version of the GDIOCSpider accommodates all the following file types
 `settings.py` Is complete with an explanation of all the configuration settings and their default. The goal of this
 tool is to offer the flexibility for you to accomplish your needs in the way you see fit.
 
+`config.json` Is what you actually modify to change how the code will run, `settings.py` serves as documentation
