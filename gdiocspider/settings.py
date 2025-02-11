@@ -90,7 +90,7 @@ class Settings:
             "Work Stuff",
         ]
         self.ONLY_SEARCH_FILES = []
-        self.KEYWORD_FILEPATHS_TO_USE = ["/root/keywords.txt"]
+        self.KEYWORD_FILEPATHS_TO_USE = []
         self.DEFANG_BEFORE_EXPORT = True
         self.GCP_TOKEN_FILE_PATH = "token.json"
         self.GCP_CREDENTIALS_FILE_PATH = "credentials.json"
