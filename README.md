@@ -16,6 +16,7 @@ If you see something you'd like changed, please submit an Issue or better yet a 
 feedback.
 This is an Open Source tool, so nothing I would love more than feedback or collaboration!
 
+![Example of GDIOCSpider Running Gif](https://github.com/user-attachments/assets/4748600a-8ec3-4792-b676-fc99839db957)
 ![Example of The GDIOCSpider Running in Console](./markdown/ConsoleRun.png)
 ![GDIOCSpider Reduced Sample Output](./markdown/OutputExample.png)
 
