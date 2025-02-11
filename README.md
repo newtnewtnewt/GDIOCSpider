@@ -58,7 +58,7 @@ In the current version of IOCTyper, the following IOC Types are supported:
 - File Path
 - Keyword
 
-# Support File Types
+# Supported File Types
 
 The current version of the GDIOCSpider accommodates all the following file types:
 
