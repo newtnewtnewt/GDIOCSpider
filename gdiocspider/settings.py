@@ -146,9 +146,7 @@ class Settings:
 
         self.ONLY_SEARCH_FILES = config.get("ONLY_SEARCH_FILES", [])
 
-        self.KEYWORD_FILEPATHS_TO_USE = config.get(
-            "KEYWORD_FILEPATHS_TO_USE", ["/root/keywords.txt"]
-        )
+        self.KEYWORD_FILEPATHS_TO_USE = config.get("KEYWORD_FILEPATHS_TO_USE", [])
 
         self.DEFANG_BEFORE_EXPORT = config.get("DEFANG_BEFORE_EXPORT", True)
 
