@@ -220,13 +220,7 @@ def get_gdrive_service_object():
         GDrive object to perform actions
 
     """
-
-    ROOT_DIR = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
-    GCP_TOKEN_FILE_PATH = os.getenv(
-        "GCP_TOKEN_FILE_PATH", os.path.join(ROOT_DIR, "token.json")
-    )
+    GCP_TOKEN_FILE_PATH = settings_store.GCP_TOKEN_FILE_PATH
 
     service = authenticate_google_drive(GCP_TOKEN_FILE_PATH)
     if not service:
@@ -294,6 +288,7 @@ def execute_gdrive_crawler():
     gdrive_service = get_gdrive_service_object()
     if not gdrive_service:
         exit()
+
     organized_file_collection = gather_valid_gdrive_files(gdrive_service)
     finalized_processed_data = process_gdrive_files(
         gdrive_service, organized_file_collection
