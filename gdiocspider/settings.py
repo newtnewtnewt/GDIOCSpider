@@ -145,6 +145,14 @@ class Settings:
             "GCP_SERVICE_ACCOUNT_FILE_PATH", "token.json"
         )
 
+        # The data_bank singleton loads its keyword set at import time, which
+        # happens before this config is applied. Reload it now so keyword files
+        # named in config.json actually take effect during a scan. Imported
+        # lazily to avoid a circular import (io_databank imports settings).
+        from gdiocspider.io_databank import data_bank
+
+        data_bank.keyword_data = data_bank.load_keyword_data()
+
 
 # This is a singleton we'll actually initialize at launch
 settings_store = Settings("config.json")
