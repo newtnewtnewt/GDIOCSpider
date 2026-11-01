@@ -31,8 +31,8 @@
     "C:\\Users\\newtn\\PycharmProjects\\GDIOCSpider\\gdiocspider\\keywords.txt"
   ],
   "DEFANG_BEFORE_EXPORT": true,
-  "GCP_TOKEN_FILE_PATH": "C:\\Users\\newtn\\PycharmProjects\\GDIOCSpider\\gdiocspider\\token.json",
-  "GCP_CREDENTIALS_FILE_PATH": "C:\\Users\\newtn\\PycharmProjects\\GDIOCSpider\\credentials.json",
+  "GCP_TOKEN_FILE_PATH": "C:\\Users\\newtn\\Documents\\python_projects\\GDIOCSpider\\gdiocspider\\token.json",
+  "GCP_CREDENTIALS_FILE_PATH": "C:\\Users\\newtn\\Documents\\python_projects\\GDIOCSpider\\credentials.json",
   "USE_SERVICE_ACCOUNT": false,
-  "GCP_SERVICE_ACCOUNT_FILE_PATH": "C:\\Users\\newtn\\PycharmProjects\\GDIOCSpider\\gdiocspider\\token.json"
+  "GCP_SERVICE_ACCOUNT_FILE_PATH": "C:\\Users\\newtn\\Documents\\python_projects\\GDIOCSpider\\gdiocspider\\token.json"
 }
