@@ -1,5 +1,6 @@
 import os
 
+from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
@@ -20,6 +21,78 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive.readonly",
     "https://www.googleapis.com/auth/drive.metadata.readonly",
 ]
+
+
+_OPEN_BROWSER_OVERRIDE = None
+
+
+def set_open_browser(open_browser):
+    """Override whether the interactive OAuth flow opens a browser.
+
+    ``False`` makes the flow only print the authorization URL (useful for a
+    headless session, or when the OS default browser is the wrong Chrome
+    profile). ``None`` restores the default, which honors the
+    ``GDIOCSPIDER_NO_BROWSER`` environment variable.
+    """
+    global _OPEN_BROWSER_OVERRIDE
+    _OPEN_BROWSER_OVERRIDE = open_browser
+
+
+def _should_open_browser():
+    """Resolve the browser preference: explicit override > env var > default."""
+    if _OPEN_BROWSER_OVERRIDE is not None:
+        return _OPEN_BROWSER_OVERRIDE
+    flag = os.environ.get("GDIOCSPIDER_NO_BROWSER", "").strip().lower()
+    return flag not in ("1", "true", "yes", "on")
+
+
+def _run_interactive_oauth_flow():
+    """Launch the interactive OAuth consent flow and return fresh credentials.
+
+    Opens the consent page in a browser by default, and always prints the
+    authorization URL to the console so it still works over a headless / SSH
+    session, or when auto-open lands on the wrong browser profile. Set
+    ``--no-browser`` / ``GDIOCSPIDER_NO_BROWSER=1`` to skip auto-open and only
+    print the URL.
+    """
+    flow = InstalledAppFlow.from_client_secrets_file(
+        settings_store.GCP_CREDENTIALS_FILE_PATH, SCOPES
+    )
+    open_browser = _should_open_browser()
+    if open_browser:
+        print(
+            "Google Drive authorization required. A browser window will open; "
+            "if it does not, copy the full URL printed below into a browser "
+            "on THIS machine to continue."
+        )
+    else:
+        print(
+            "Google Drive authorization required (no-browser mode). Open the "
+            "full URL printed below in a browser on THIS machine, then complete "
+            "consent to continue."
+        )
+    return flow.run_local_server(port=0, open_browser=open_browser)
+
+
+def _obtain_user_credentials(creds):
+    """Return valid user credentials, re-authenticating interactively if needed.
+
+    A stored token can carry a refresh token that Google has since revoked or
+    expired. In that case ``creds.refresh()`` raises ``RefreshError``
+    (``invalid_grant``). Instead of failing the whole run and asking the user to
+    manually delete token.json, fall back to the interactive consent flow so the
+    token is refreshed in a single step.
+    """
+    if creds and creds.expired and creds.refresh_token:
+        try:
+            creds.refresh(Request())
+            return creds
+        except RefreshError as e:
+            print(
+                f"Stored token could not be refreshed ({e}); "
+                "starting interactive re-authentication."
+            )
+    return _run_interactive_oauth_flow()
 
 
 def authenticate_google_drive(token_path):
@@ -56,13 +129,7 @@ def authenticate_google_drive(token_path):
                 )
             # If there are no (valid) credentials available, let the user log in.
             if not creds or not creds.valid:
-                if creds and creds.expired and creds.refresh_token:
-                    creds.refresh(Request())
-                else:
-                    flow = InstalledAppFlow.from_client_secrets_file(
-                        settings_store.GCP_CREDENTIALS_FILE_PATH, SCOPES
-                    )
-                    creds = flow.run_local_server(port=0)
+                creds = _obtain_user_credentials(creds)
                 # Save the credentials for the next run
                 with open(settings_store.GCP_TOKEN_FILE_PATH, "w") as token:
                     token.write(creds.to_json())

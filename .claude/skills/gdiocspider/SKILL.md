@@ -60,7 +60,7 @@ Use `--no-strict` when the value is embedded in a sentence. Summarize `ioc_type`
 
 5. After scan, summarize: top IOC types, files with the most hits, likely false positives (generic filenames, keywords). Do not dump every row unless asked.
 
-If auth fails, tell the user to refresh `token.json` locally. Do not start an unattended OAuth browser flow.
+If the stored token is missing or its refresh token is dead (`invalid_grant`), the CLI now falls back to the interactive OAuth flow automatically and prints the authorization URL — no manual `token.json` delete needed. Consent must be completed by the user in a browser on the same machine. Use `--no-browser` (or `GDIOCSPIDER_NO_BROWSER=1`) to only print the URL. Do not start an unattended OAuth browser flow inside the agent unless the user is present.
 
 ## Errors
 

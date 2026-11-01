@@ -39,7 +39,7 @@ Service Account in GCP
 6. Examine `settings.py` for all settings. See if there's anything you want to change in `config.json`.
 7. Install with your choice of tool, i.e: `pip install ./GDIOCSpider`
 8. Run with required parameters: `gdiocspider --config_file="/tmp/config.json" --output_file="/tmp/indicator_data.csv"`
-9. This will require authorization of your custom application on first run
+9. This will require authorization of your custom application on first run. A browser opens for OAuth consent and a `token.json` is written for reuse. If a stored `token.json` is later expired or revoked (`invalid_grant`), the tool re-runs the consent flow automatically — you no longer need to delete `token.json` by hand. Consent must be completed in a browser on the same machine (the redirect lands on `http://localhost`). Pass `--no-browser` (or set `GDIOCSPIDER_NO_BROWSER=1`) to only print the authorization URL instead of auto-opening a browser — handy for headless/SSH sessions or when auto-open picks the wrong browser profile.
 
 The original two-flag command is unchanged. Subcommands are optional for agents and for targeted jobs:
 

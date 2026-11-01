@@ -58,6 +58,12 @@ def parse_cli_args(argv=None):
         type=str,
         help="Absolute path to where the output file will be output: /gdiocspider/indicator_data.csv",
     )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not auto-open a browser for OAuth; only print the authorization URL "
+        "(also enabled by GDIOCSPIDER_NO_BROWSER=1).",
+    )
 
     subparsers = parser.add_subparsers(dest="command")
 
@@ -82,6 +88,12 @@ def parse_cli_args(argv=None):
         default="csv",
         help="Output format (default: csv)",
     )
+    scan_parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not auto-open a browser for OAuth; only print the authorization URL "
+        "(also enabled by GDIOCSPIDER_NO_BROWSER=1).",
+    )
 
     list_parser = subparsers.add_parser(
         "list-files",
@@ -98,6 +110,12 @@ def parse_cli_args(argv=None):
         choices=["json"],
         default="json",
         help="Output format (default: json)",
+    )
+    list_parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not auto-open a browser for OAuth; only print the authorization URL "
+        "(also enabled by GDIOCSPIDER_NO_BROWSER=1).",
     )
 
     type_parser = subparsers.add_parser(
@@ -148,8 +166,10 @@ def load_settings(config_file, output_file=None, as_json=False):
 
 
 def run_scan(args):
-    from gdiocspider.gdrive_crawler import execute_gdrive_crawler
+    from gdiocspider.gdrive_crawler import execute_gdrive_crawler, set_open_browser
 
+    if getattr(args, "no_browser", False):
+        set_open_browser(False)
     as_json = getattr(args, "format", "csv") == "json"
     load_settings(args.config_file, args.output_file, as_json=as_json)
     print(
@@ -169,8 +189,10 @@ def run_scan(args):
 
 
 def run_list_files(args):
-    from gdiocspider.gdrive_crawler import execute_list_files
+    from gdiocspider.gdrive_crawler import execute_list_files, set_open_browser
 
+    if getattr(args, "no_browser", False):
+        set_open_browser(False)
     as_json = True
     load_settings(args.config_file, as_json=as_json)
     with redirect_progress_to_stderr(True):

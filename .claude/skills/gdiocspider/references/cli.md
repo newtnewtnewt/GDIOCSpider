@@ -46,7 +46,7 @@ Each record:
 
 CSV columns: Indicator Value, Indicator Type, Count, File Name, File Path, File Type, File ID, File Size.
 
-Auth needs an existing token when possible. First-run OAuth opens a browser; do not try to complete that interactively inside the agent unless the user is present.
+Auth needs an existing token when possible. First-run OAuth opens a browser; do not try to complete that interactively inside the agent unless the user is present. See [Authentication](#authentication).
 
 ## list-files
 
@@ -68,6 +68,25 @@ Stdout:
 ```
 
 Use this before a full crawl to propose `IGNORE_FILES_AND_FOLDERS` or `ONLY_SEARCH_FILES`.
+
+## Authentication
+
+`scan` and `list-files` authenticate with Google Drive before doing anything else, using `GCP_TOKEN_FILE_PATH` / `GCP_CREDENTIALS_FILE_PATH` from the config.
+
+- A valid `token.json` is used directly.
+- An expired token with a working refresh token is refreshed silently.
+- If the token is missing, or its refresh token is revoked/expired (`invalid_grant`), the tool falls back to the interactive OAuth consent flow automatically — no need to manually delete `token.json` first. The authorization URL is always printed to the console, and a browser is opened by default.
+
+Consent must be completed in a browser **on the same machine** (the redirect lands on `http://localhost:<port>`). The Google *account* you pick on the consent screen is what matters, not which browser profile the tab opens in — use "Use another account" if the wrong one auto-opens.
+
+Skip the browser auto-open (print the URL only) with either:
+
+```bash
+gdiocspider list-files --no-browser --config_file "/abs/path/config.json"
+GDIOCSPIDER_NO_BROWSER=1 gdiocspider scan --config_file "/abs/path/config.json" --output_file "/abs/path/out.json" --format json
+```
+
+The `--no-browser` flag overrides the env var. Useful for headless/SSH sessions, or when auto-open lands on the wrong browser. Do not complete OAuth unattended inside an agent unless the user is present.
 
 ## type
 
