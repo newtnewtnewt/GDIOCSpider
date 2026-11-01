@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+# Keep .claude/skills/gdiocspider in sync with the canonical
+# .agents/skills/gdiocspider on every commit.
+#
+# Install once per clone:  git config core.hooksPath .githooks
+set -eu
+
+ROOT="$(git rev-parse --show-toplevel)"
+CANON_REL=".agents/skills/gdiocspider"
+MIRROR_REL=".claude/skills/gdiocspider"
+
+# Guard: if the mirror was edited but the canonical copy was not, the edit would
+# be overwritten by the sync below. Stop and tell the author to edit the source.
+canon_staged="$(git diff --cached --name-only -- "$CANON_REL")"
+mirror_staged="$(git diff --cached --name-only -- "$MIRROR_REL")"
+if [ -n "$mirror_staged" ] && [ -z "$canon_staged" ]; then
+    echo "pre-commit: you staged changes under $MIRROR_REL," >&2
+    echo "but $CANON_REL is the source of truth." >&2
+    echo "Move your edits there (the .claude copy is generated), then commit again." >&2
+    exit 1
+fi
+
+# Sync canonical -> mirror and stage the result so the commit can't drift.
+sh "$ROOT/scripts/sync-skills.sh"

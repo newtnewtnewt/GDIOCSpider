@@ -61,14 +61,17 @@ gdiocspider type --value "see 1.1.1.1 in this sentence" --no-strict
 
 A portable Agent Skill lives at `.agents/skills/gdiocspider/` ([agentskills.io](https://agentskills.io/specification)). Cursor, Codex, and GitHub Copilot load that folder automatically. The skill tells the agent when to configure `config.json`, inventory Drive, scan, or type a pasted IOC.
 
-Claude Code looks in `.claude/skills/` first. From the repo root:
+Claude Code looks in `.claude/skills/` first, so a copy of the skill is committed there too (`.claude/skills/gdiocspider/`). It works on clone with no extra setup.
+
+### Editing the skill (contributors)
+
+`.agents/skills/gdiocspider/` is the **source of truth**; `.claude/skills/gdiocspider/` is a generated mirror. Edit the `.agents` copy only. A pre-commit hook keeps the mirror in sync automatically — enable it once per clone:
 
 ```bash
-mkdir -p .claude/skills
-ln -s ../../.agents/skills/gdiocspider .claude/skills/gdiocspider
+git config core.hooksPath .githooks
 ```
 
-On Windows, copy the folder or use `mklink /J .claude\skills\gdiocspider .agents\skills\gdiocspider`.
+With the hook enabled, committing a change to the `.agents` skill regenerates and stages the `.claude` mirror. You can also sync manually with `sh scripts/sync-skills.sh`.
 
 This skill needs a **local runtime** that can run `gdiocspider` and reach Google Drive with your existing `token.json`. Cursor, Claude Code, and Codex CLI can do that. ChatGPT chat without a local/CLI runtime cannot scan Drive or complete OAuth; use Codex/Cursor/Claude Code for crawls, or `gdiocspider type` only where a shell is available.
 
