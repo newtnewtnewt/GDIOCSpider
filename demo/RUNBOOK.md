@@ -56,13 +56,16 @@ cheap pre-flight you run before a full crawl to decide what to skip or target.
 > "Now crawl everything and extract indicators."
 
 ```bash
-# JSON (structured, nested per file)
-gdiocspider scan --config_file demo/configs/01_full_scan.json \
-  --output_file demo/output/full.json --format json
-
-# Classic two-flag CSV (original tool, unchanged)
+# Classic two-flag CSV (original tool) — readable progress + per-file totals
+# print live on the console; the full table is saved to the CSV.
 gdiocspider --config_file demo/configs/01_full_scan.json \
   --output_file demo/output/full.csv
+
+# Same crawl as structured JSON. --format json echoes the whole array to stdout,
+# so pipe it into the summarizer (the array lands in demo/output/full.json via
+# --output_file; the live crawl progress still shows on stderr).
+gdiocspider scan --config_file demo/configs/01_full_scan.json \
+  --output_file demo/output/full.json --format json | python demo/summarize.py -
 ```
 
 **Expect:** **182 unique indicators across 8 files**, defanged on export
@@ -78,8 +81,9 @@ gdiocspider --config_file demo/configs/01_full_scan.json \
 | SHA256 | 10 |
 | File Path | 4 |
 
-Talking point: progress logs go to **stderr**, structured results to **stdout/`--output_file`**,
-so JSON stays pipeable.
+Talking point: progress logs go to **stderr**, structured results to **stdout/`--output_file`**.
+Don't echo the raw JSON on stage — pipe it to `demo/summarize.py` (or redirect to a
+file) so the terminal shows the headline counts, not 182 records.
 
 ### 1c. Config abilities
 
@@ -87,7 +91,7 @@ so JSON stays pipeable.
 
 ```bash
 gdiocspider scan --config_file demo/configs/02_targeted.json \
-  --output_file demo/output/targeted.json --format json
+  --output_file demo/output/targeted.json --format json | python demo/summarize.py -
 ```
 **Expect:** only **2 files, 33 indicators**. Same Drive, scoped crawl.
 
@@ -95,7 +99,7 @@ gdiocspider scan --config_file demo/configs/02_targeted.json \
 
 ```bash
 gdiocspider scan --config_file demo/configs/03_exclude_types.json \
-  --output_file demo/output/network_only.json --format json
+  --output_file demo/output/network_only.json --format json | python demo/summarize.py -
 ```
 **Expect:** **160 indicators** (the 22 File Name/Path rows gone) — just the
 network/host IOCs an analyst usually wants first.
@@ -112,7 +116,12 @@ the exported values are safe to paste into tickets/chat without creating live li
 
 ```bash
 gdiocspider scan --config_file demo/configs/04_keywords.json \
-  --output_file demo/output/keywords.json --format json
+  --output_file demo/output/keywords.json --format json | python demo/summarize.py -
+
+# To show the actual words that matched, grep the live progress instead:
+gdiocspider scan --config_file demo/configs/04_keywords.json \
+  --output_file demo/output/keywords.json --format json 2>&1 >/dev/null \
+  | grep "Type: Keyword"
 ```
 **Expect:** Keyword type now appears — **208 total indicators, 26 of them `Keyword`**
 (e.g. `Malware`, `traffic`, `detected`, `hash`, `email`). The keyword list is
