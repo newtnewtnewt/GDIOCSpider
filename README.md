@@ -41,6 +41,37 @@ Service Account in GCP
 8. Run with required parameters: `gdiocspider --config_file="/tmp/config.json" --output_file="/tmp/indicator_data.csv"`
 9. This will require authorization of your custom application on first run
 
+The original two-flag command is unchanged. Subcommands are optional for agents and for targeted jobs:
+
+```bash
+gdiocspider --config_file="/tmp/config.json" --output_file="/tmp/indicator_data.csv"
+
+gdiocspider scan --config_file="/tmp/config.json" --output_file="/tmp/indicator_data.csv"
+gdiocspider scan --config_file="/tmp/config.json" --output_file="/tmp/indicator_data.json" --format json
+
+gdiocspider list-files --config_file="/tmp/config.json"
+
+gdiocspider type --value "1.1.1.1"
+gdiocspider type --value "see 1.1.1.1 in this sentence" --no-strict
+```
+
+`--format json` writes structured results to stdout (and to `--output_file` for `scan`). Progress logs go to stderr so they do not break JSON parsing.
+
+# Use from any Agent Skills host
+
+A portable Agent Skill lives at `.agents/skills/gdiocspider/` ([agentskills.io](https://agentskills.io/specification)). Cursor, Codex, and GitHub Copilot load that folder automatically. The skill tells the agent when to configure `config.json`, inventory Drive, scan, or type a pasted IOC.
+
+Claude Code looks in `.claude/skills/` first. From the repo root:
+
+```bash
+mkdir -p .claude/skills
+ln -s ../../.agents/skills/gdiocspider .claude/skills/gdiocspider
+```
+
+On Windows, copy the folder or use `mklink /J .claude\skills\gdiocspider .agents\skills\gdiocspider`.
+
+This skill needs a **local runtime** that can run `gdiocspider` and reach Google Drive with your existing `token.json`. Cursor, Claude Code, and Codex CLI can do that. ChatGPT chat without a local/CLI runtime cannot scan Drive or complete OAuth; use Codex/Cursor/Claude Code for crawls, or `gdiocspider type` only where a shell is available.
+
 # Supported IOC Types
 
 In the current version of IOCTyper, the following IOC Types are supported:

@@ -56,21 +56,7 @@ class Settings:
     def __init__(self, config_file_path):
         self.config_file_path = config_file_path
         self.output_file_path = "indicator_data.csv"
-        self.SEARCH_EXCLUSION_LIST = [
-            "IPv4",
-            "IPv6",
-            "SHA512",
-            "SHA256",
-            "SHA1",
-            "MD5",
-            "Email",
-            "Registry Key",
-            "User Agent",
-            "Domain Name",
-            "File Name",
-            "File Path",
-            "Keyword",
-        ]
+        self.SEARCH_EXCLUSION_LIST = []
         self.IOC_TYPER_STRICT_MODE = False
         self.PERMITTED_DELIMITERS_TO_CHECK_AGAINST = [",", "\n", "\r", ":", "|", " "]
         self.MIME_FILE_TYPES_TO_SCAN = [

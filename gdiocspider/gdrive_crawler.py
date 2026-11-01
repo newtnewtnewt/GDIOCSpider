@@ -1,4 +1,3 @@
-import argparse
 import os
 
 from google.auth.transport.requests import Request
@@ -8,7 +7,10 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from gdiocspider.data_exporter import export_all_indicator_data_to_csv
+from gdiocspider.data_exporter import (
+    export_all_indicator_data_to_csv,
+    export_all_indicator_data_to_json,
+)
 from gdiocspider.file_scraper import extract_indicators_from_gdrive_file
 from gdiocspider.settings import settings_store
 
@@ -281,45 +283,39 @@ def process_gdrive_files(gdrive_service, organized_file_collection):
     return all_processed_data
 
 
-def execute_gdrive_crawler():
+def execute_list_files():
+    """
+    Authenticate and return the files that would be scanned, without extracting IOCs.
+    """
+    gdrive_service = get_gdrive_service_object()
+    if not gdrive_service:
+        return None
+    return gather_valid_gdrive_files(gdrive_service)
+
+
+def execute_gdrive_crawler(output_format="csv"):
     """
     The function that handles everything
     """
     gdrive_service = get_gdrive_service_object()
     if not gdrive_service:
-        exit()
+        return None
 
     organized_file_collection = gather_valid_gdrive_files(gdrive_service)
     finalized_processed_data = process_gdrive_files(
         gdrive_service, organized_file_collection
     )
-    export_all_indicator_data_to_csv(finalized_processed_data)
+    if output_format == "json":
+        export_all_indicator_data_to_json(finalized_processed_data)
+    else:
+        export_all_indicator_data_to_csv(finalized_processed_data)
+    return finalized_processed_data
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Google Drive Crawler Script")
-    parser.add_argument(
-        "--config_file",
-        type=str,
-        required=True,
-        help="Absolute path to the configuration file: /gdiocspider/config.json",
-    )
-    parser.add_argument(
-        "--output_file",
-        type=str,
-        required=True,
-        help="Absolute path to where the output file will be output: /gdiocspider/indicator_data.csv",
-    )
+def main(argv=None):
+    from gdiocspider.cli import main as cli_main
 
-    args = parser.parse_args()
-
-    settings_store.update_file_path(args.config_file)
-    settings_store.update_output_file_path(args.output_file)
-    settings_store.initialize_settings()
-
-    # Pass arguments to the execute_gdrive_crawler function if needed in the future
-    print(f"Beginning GDIOCSpider with {args.config_file}, {args.output_file}\n\n")
-    execute_gdrive_crawler()
+    cli_main(argv)
 
 
 if __name__ == "__main__":

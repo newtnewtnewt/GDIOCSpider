@@ -1,4 +1,5 @@
 import csv
+import json
 
 from gdiocspider.settings import settings_store
 
@@ -67,3 +68,16 @@ def export_all_indicator_data_to_csv(indicator_data):
     print(
         f"DONE! Finished exporting all indicator data to {settings_store.output_file_path}"
     )
+
+
+def export_all_indicator_data_to_json(indicator_data):
+    """
+    Write the same crawl records as JSON so agents can read results without parsing CSV.
+    """
+    with open(settings_store.output_file_path, mode="w", encoding="utf-8") as file:
+        json.dump(indicator_data, file, indent=2)
+
+    print(
+        f"DONE! Finished exporting all indicator data to {settings_store.output_file_path}"
+    )
+    return indicator_data
