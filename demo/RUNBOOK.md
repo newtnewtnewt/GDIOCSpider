@@ -9,8 +9,9 @@ All commands are run **from the repo root** (`GDIOCSpider/`). The demo configs u
 repo-relative paths (`gdiocspider/token.json`, `credentials.json`, `demo/keywords.txt`),
 so there are no machine-specific absolute paths to edit.
 
-**Offline fallback:** [`TRANSCRIPT.md`](TRANSCRIPT.md) holds real captured output of the
-entire CLI demo — use it to present if Drive/Wi-Fi is unavailable on stage.
+**Offline fallbacks:** [`TRANSCRIPT.md`](TRANSCRIPT.md) holds real captured output of the
+entire CLI demo, and [`TRANSCRIPT_SKILL.md`](TRANSCRIPT_SKILL.md) captures the agent-skill
+demo (prompts → tool calls → answers) — use either if Drive/Wi-Fi is unavailable on stage.
 
 ---
 
