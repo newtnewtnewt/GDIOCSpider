@@ -26,7 +26,7 @@ mkdir -p demo/output
 ```bash
 gdiocspider list-files --config_file demo/configs/01_full_scan.json
 ```
-Expect: a readable inventory by category with file names, ending `Total: 8 file(s)`.
+Expect: a one-line inventory — `8 file(s) -- <category (n): names> | ...`.
 
 ### 2. Full scan — all IOCs
 ```bash

@@ -56,16 +56,10 @@ Auth + inventory only. No downloads, no IOC extraction.
 gdiocspider list-files --config_file "/abs/path/config.json"
 ```
 
-Stdout is a readable inventory (not a JSON blob) — each category, the file names under it, and a total:
+Stdout is a readable inventory on a single line (not a JSON blob) — the total, then each category with its file names:
 
 ```
-CSV File (2)
-  - indicator_data.csv
-  - DELETE_ME.csv
-Text File (1)
-  - DELETE_ME.txt
-
-Total: 8 file(s)
+8 file(s) -- CSV File (2): indicator_data.csv, DELETE_ME.csv | Text File (1): DELETE_ME.txt
 ```
 
 Progress/auth messages go to stderr. Use this before a full crawl to propose `IGNORE_FILES_AND_FOLDERS` or `ONLY_SEARCH_FILES`.

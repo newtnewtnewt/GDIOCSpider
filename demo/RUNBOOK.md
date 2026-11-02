@@ -48,9 +48,9 @@ Expected inventory: **8 files** — 2 Google Sheets (`indicator_data`, `DELETE_M
 gdiocspider list-files --config_file demo/configs/01_full_scan.json
 ```
 
-**Expect:** a readable inventory grouped by category with the file names, ending
-`Total: 8 file(s)` — no raw JSON blob. Talking point: this is the cheap pre-flight
-you run before a full crawl to decide what to skip or target.
+**Expect:** a one-line inventory — `8 file(s) -- <category (n): names> | ...` — no
+raw JSON blob. Talking point: this is the cheap pre-flight you run before a full
+crawl to decide what to skip or target.
 
 ### 1b. IOC inventory (full `scan`)
 

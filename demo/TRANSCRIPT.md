@@ -8,22 +8,7 @@ Real output captured from a live Google Drive crawl on 2026-11-01. Repetitive pe
 
 ```console
 $ gdiocspider list-files --config_file demo/configs/01_full_scan.json
-CSV File (2)
-  - indicator_data.csv
-  - DELETE_ME.csv
-Google Docs (1)
-  - DELETE_ME_GDOCS
-Google Sheets (2)
-  - indicator_data
-  - DELETE_ME
-JSON File (1)
-  - DELETE_ME.json
-Python Script (1)
-  - DELETE_ME.py
-Text File (1)
-  - DELETE_ME.txt
-
-Total: 8 file(s)
+8 file(s) -- CSV File (2): indicator_data.csv, DELETE_ME.csv | Google Docs (1): DELETE_ME_GDOCS | Google Sheets (2): indicator_data, DELETE_ME | JSON File (1): DELETE_ME.json | Python Script (1): DELETE_ME.py | Text File (1): DELETE_ME.txt
 ```
 
 **8 files**, grouped by category. No downloads, no extraction.
