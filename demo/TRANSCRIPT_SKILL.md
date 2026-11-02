@@ -17,7 +17,8 @@ command. All figures are real.
 **💬 You:** "Crawl my whole Drive, rank the files by how many unique IOCs each
 contributes, and for the biggest real source break down whether it's mostly
 network or file-based. Flag anything that's actually a previous report rather
-than source data."
+than source data. Keep the `old_school_stuff` folder excluded — there's too much
+content in it."
 
 **🔧 Skill routes to a full `scan`, then reasons over `demo/output/full.json`:**
 
@@ -55,7 +56,7 @@ triage first.
 
 **💬 You:** "Do my two Google Sheets (`indicator_data` and `DELETE_ME`) overlap
 or are they independent? Tell me which indicators they share and which are unique
-to each."
+to each. Keep the `old_school_stuff` folder excluded — there's too much content in it."
 
 **🔧 Skill `scan`s, then diffs the two sheets' indicator sets:**
 
@@ -79,7 +80,7 @@ report rather than counting both.
 
 **💬 You:** "Which domains and emails show up in more than one file? Ignore my
 prior-report files — the repeats across the *real* source files are my best pivot
-points."
+points. Keep the `old_school_stuff` folder excluded — there's too much content in it."
 
 **🔧 Skill `scan`s, builds a value→files index, drops the report files:**
 
@@ -108,7 +109,8 @@ start with `phishing@badguys[.]com` and `dangerous-link[.]org`.
 
 **💬 You:** "Turn on keyword hunting for `Malware` and `traffic`, and tell me
 which files mention them and what other IOCs sit alongside — I want the context,
-not just a hit count."
+not just a hit count. Keep the `old_school_stuff` folder excluded — there's too
+much content in it."
 
 **🔧 Skill switches to the keyword config (`Keyword` enabled + `demo/keywords.txt`),
 `scan`s, then correlates keyword hits with co-located IOCs:**
@@ -134,7 +136,8 @@ so they're the artifacts to open first for context.
 ## Prompt 5 — structured vs. unstructured richness
 
 **💬 You:** "Scan only my JSON and text files and compare them on network IOCs and
-hashes — which is the richer artifact to triage first?"
+hashes — which is the richer artifact to triage first? Keep the `old_school_stuff`
+folder excluded — there's too much content in it."
 
 **🔧 Skill writes an `ONLY_SEARCH_FILES` config, `scan`s, compares:**
 

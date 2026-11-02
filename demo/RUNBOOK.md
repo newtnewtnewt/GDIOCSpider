@@ -154,34 +154,39 @@ skill to crawl *and reason over the result*. Full answers with real figures are 
 1. **Rank sources & spot prior reports (→ `scan` + ranking)**
    > "Crawl my whole Drive, rank the files by how many unique IOCs each contributes,
    > and for the biggest real source break down whether it's mostly network or
-   > file-based. Flag anything that's actually a previous report, not source data."
+   > file-based. Flag anything that's actually a previous report, not source data.
+   > Keep the `old_school_stuff` folder excluded — there's too much content in it."
 
    Payoff: the agent catches `indicator_data` / `indicator_data.csv` as a
    re-ingested report and names `DELETE_ME.csv` (32, all network) as the real top source.
 
 2. **Overlap / dedupe (→ `scan` + set diff)**
    > "Do my two Google Sheets overlap or are they independent? Which indicators do
-   > they share, and which are unique to each?"
+   > they share, and which are unique to each? Keep the `old_school_stuff` folder
+   > excluded — there's too much content in it."
 
    Payoff: proves `DELETE_ME` is fully contained in `indicator_data` (0 unique).
 
 3. **Cross-file pivots (→ `scan` + value→files index)**
    > "Which domains and emails show up in more than one file? Ignore my prior-report
-   > files — the repeats in the real source data are my best pivot points."
+   > files — the repeats in the real source data are my best pivot points. Keep the
+   > `old_school_stuff` folder excluded — there's too much content in it."
 
    Payoff: ranks `phishing@badguys[.]com`, `dangerous-link[.]org`, `test@malicious[.]net`
    (3 real files each) as top pivots.
 
 4. **Keyword hunt with context (→ keyword config + `scan` + correlation)**
    > "Turn on keyword hunting for `Malware` and `traffic`, and tell me which files
-   > mention them and what other IOCs sit alongside — I want context, not a count."
+   > mention them and what other IOCs sit alongside — I want context, not a count.
+   > Keep the `old_school_stuff` folder excluded — there's too much content in it."
 
    Payoff: `Malware` in 2 files, `traffic` in 4; both land together in
    `DELETE_ME_GDOCS` and `DELETE_ME.txt` next to network IOCs + a hash.
 
 5. **Targeted comparison (→ `ONLY_SEARCH_FILES` + `scan`)**
    > "Scan only my JSON and text files and compare them on network IOCs and hashes —
-   > which is the richer artifact to triage first?"
+   > which is the richer artifact to triage first? Keep the `old_school_stuff` folder
+   > excluded — there's too much content in it."
 
    Payoff: `DELETE_ME.json` wins (net 10 / hash 5 vs. 8 / 3).
 

@@ -81,19 +81,19 @@ Paste these into a **fresh** Claude Code session in the repo (restart so the
 result. Real answers are in [`TRANSCRIPT_SKILL.md`](TRANSCRIPT_SKILL.md).
 
 **1. Rank sources & spot prior reports**
-> Crawl my whole Drive, rank the files by how many unique IOCs each contributes, and for the biggest real source break down whether it's mostly network or file-based. Flag anything that's actually a previous report, not source data.
+> Crawl my whole Drive, rank the files by how many unique IOCs each contributes, and for the biggest real source break down whether it's mostly network or file-based. Flag anything that's actually a previous report, not source data. Keep the `old_school_stuff` folder excluded — there's too much content in it.
 
 **2. Overlap / dedupe**
-> Do my two Google Sheets overlap or are they independent? Which indicators do they share, and which are unique to each?
+> Do my two Google Sheets overlap or are they independent? Which indicators do they share, and which are unique to each? Keep the `old_school_stuff` folder excluded — there's too much content in it.
 
 **3. Cross-file pivots**
-> Which domains and emails show up in more than one file? Ignore my prior-report files — the repeats in the real source data are my best pivot points.
+> Which domains and emails show up in more than one file? Ignore my prior-report files — the repeats in the real source data are my best pivot points. Keep the `old_school_stuff` folder excluded — there's too much content in it.
 
 **4. Keyword hunt with context**
-> Turn on keyword hunting for `Malware` and `traffic`, and tell me which files mention them and what other IOCs sit alongside — I want context, not a count.
+> Turn on keyword hunting for `Malware` and `traffic`, and tell me which files mention them and what other IOCs sit alongside — I want context, not a count. Keep the `old_school_stuff` folder excluded — there's too much content in it.
 
 **5. Targeted comparison (structured vs. unstructured)**
-> Scan only my JSON and text files and compare them on network IOCs and hashes — which is the richer artifact to triage first?
+> Scan only my JSON and text files and compare them on network IOCs and hashes — which is the richer artifact to triage first? Keep the `old_school_stuff` folder excluded — there's too much content in it.
 
 ---
 
