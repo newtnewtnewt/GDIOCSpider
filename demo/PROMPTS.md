@@ -26,12 +26,11 @@ mkdir -p demo/output
 ```bash
 gdiocspider list-files --config_file demo/configs/01_full_scan.json
 ```
-Expect: a one-line inventory — `8 file(s) -- <category (n): names> | ...`.
+Expect: a readable inventory by category with file names, ending `Total: 8 file(s)`.
 
 ### 2. Full scan — all IOCs
 ```bash
-gdiocspider scan --config_file demo/configs/01_full_scan.json \
-  --output_file demo/output/full.json --format json
+gdiocspider scan --config_file demo/configs/01_full_scan.json --output_file demo/output/full.json --format json
 python demo/summarize.py demo/output/full.json
 ```
 Expect: **182 unique indicators across 8 files** (IPv4 62, Domain 46, Email 28,
@@ -39,36 +38,30 @@ File Name 18, MD5 14, SHA256 10, File Path 4).
 
 Classic CSV variant (live per-file totals on console):
 ```bash
-gdiocspider --config_file demo/configs/01_full_scan.json \
-  --output_file demo/output/full.csv
+gdiocspider --config_file demo/configs/01_full_scan.json --output_file demo/output/full.csv
 ```
 
 ### 3. Targeted scan — `ONLY_SEARCH_FILES`
 ```bash
-gdiocspider scan --config_file demo/configs/02_targeted.json \
-  --output_file demo/output/targeted.json --format json
+gdiocspider scan --config_file demo/configs/02_targeted.json --output_file demo/output/targeted.json --format json
 python demo/summarize.py demo/output/targeted.json
 ```
 Expect: **2 files, 33 indicators**.
 
 ### 4. Noise reduction — `SEARCH_EXCLUSION_LIST` (drops File Name + File Path)
 ```bash
-gdiocspider scan --config_file demo/configs/03_exclude_types.json \
-  --output_file demo/output/network_only.json --format json
+gdiocspider scan --config_file demo/configs/03_exclude_types.json --output_file demo/output/network_only.json --format json
 python demo/summarize.py demo/output/network_only.json
 ```
 Expect: **160 indicators** (network/host IOCs only).
 
 ### 5. Keyword hunt — `KEYWORD_FILEPATHS_TO_USE`
 ```bash
-gdiocspider scan --config_file demo/configs/04_keywords.json \
-  --output_file demo/output/keywords.json --format json
+gdiocspider scan --config_file demo/configs/04_keywords.json --output_file demo/output/keywords.json --format json
 python demo/summarize.py demo/output/keywords.json
 
 # show the actual matched words (progress is on stderr):
-gdiocspider scan --config_file demo/configs/04_keywords.json \
-  --output_file demo/output/keywords.json --format json 2>&1 >/dev/null \
-  | grep "Type: Keyword"
+gdiocspider scan --config_file demo/configs/04_keywords.json --output_file demo/output/keywords.json --format json 2>&1 >/dev/null | grep "Type: Keyword"
 ```
 Expect: **208 total, 26 `Keyword`** (e.g. `Malware`, `traffic`, `detected`, `hash`, `email`).
 
