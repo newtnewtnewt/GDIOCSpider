@@ -228,12 +228,16 @@ def list_all_files(gdrive_service):
         return []
 
 
-def categorize_files(files):
+def categorize_files(files, announce=True):
     """
     Display files categorized by their types and return a dictionary with metadata.
 
     Args:
         files (list): List of files to display.
+        announce (bool): When True (default, used by scan), print the readable
+            "Available Files by Category" listing as progress. The list-files
+            path passes False so it can render the inventory itself without a
+            duplicate listing.
 
     Returns:
         dict: Dictionary of files categorized by their types with metadata.
@@ -252,7 +256,8 @@ def categorize_files(files):
 
     categorized_files = {}
 
-    print(f"\nAvailable Files by Category ({len(files)} total):")
+    if announce:
+        print(f"\nAvailable Files by Category ({len(files)} total):")
 
     for file in files:
         mime_type = file.get("mimeType", "Unknown")
@@ -271,11 +276,12 @@ def categorize_files(files):
             categorized_files[category] = []
         categorized_files[category].append(file_metadata)
 
-    for category, files_list in categorized_files.items():
-        print(f"\n{category} ({len(files_list)}):")
-        for file_meta in files_list:
-            print(file_meta["path"])
-    print()
+    if announce:
+        for category, files_list in categorized_files.items():
+            print(f"\n{category} ({len(files_list)}):")
+            for file_meta in files_list:
+                print(file_meta["path"])
+        print()
     return categorized_files
 
 
@@ -300,12 +306,14 @@ def get_gdrive_service_object():
     return service
 
 
-def gather_valid_gdrive_files(gdrive_service):
+def gather_valid_gdrive_files(gdrive_service, announce=True):
     """
     This grabs all the valid files according to the settings and then categorizes them.
 
     Args:
         gdrive_service: A service object for interacting with Google Drive.
+        announce (bool): Forwarded to categorize_files. True (default) prints the
+            category listing as progress; list-files passes False.
 
     Returns:
         The dictionary of all files with their associated metadata
@@ -317,7 +325,7 @@ def gather_valid_gdrive_files(gdrive_service):
         print("No files found.")
         return {}
 
-    organized_file_collection = categorize_files(files)
+    organized_file_collection = categorize_files(files, announce=announce)
 
     return organized_file_collection
 
@@ -357,7 +365,9 @@ def execute_list_files():
     gdrive_service = get_gdrive_service_object()
     if not gdrive_service:
         return None
-    return gather_valid_gdrive_files(gdrive_service)
+    # Don't print the "Available Files by Category" progress listing here; the
+    # list-files CLI renders its own clean inventory from the returned dict.
+    return gather_valid_gdrive_files(gdrive_service, announce=False)
 
 
 def execute_gdrive_crawler(output_format="csv"):
