@@ -146,36 +146,43 @@ gdiocspider type --value "d41d8cd98f00b204e9800998ecf8427e"  # -> MD5
 > picks the right subcommand, writes config, runs it, and summarizes.
 
 Open Claude Code in the repo. The `gdiocspider` skill is already installed under
-`.claude/skills/`. Try these **high-level prompts** (each maps to tool calls the
-audience can watch):
+`.claude/skills/`. Try these **high-level, analytical prompts** — each asks the
+skill to crawl *and reason over the result*. Full answers with real figures are in
+[`TRANSCRIPT_SKILL.md`](TRANSCRIPT_SKILL.md).
 
-1. **Single indicator (→ `type`)**
-   > "Is `203.0.113.42` an IOC, and what type?"
+1. **Rank sources & spot prior reports (→ `scan` + ranking)**
+   > "Crawl my whole Drive, rank the files by how many unique IOCs each contributes,
+   > and for the biggest real source break down whether it's mostly network or
+   > file-based. Flag anything that's actually a previous report, not source data."
 
-   Shows the skill choosing `type` and *not* crawling Drive.
+   Payoff: the agent catches `indicator_data` / `indicator_data.csv` as a
+   re-ingested report and names `DELETE_ME.csv` (32, all network) as the real top source.
 
-2. **Pasted log line (→ `type --no-strict`)**
-   > "Pull any indicators out of this line: `Malware traffic detected from 203.0.113.42 via noxious@phishingsite.net`"
+2. **Overlap / dedupe (→ `scan` + set diff)**
+   > "Do my two Google Sheets overlap or are they independent? Which indicators do
+   > they share, and which are unique to each?"
 
-   Shows loose mode extracting the IP/email from inside prose.
+   Payoff: proves `DELETE_ME` is fully contained in `indicator_data` (0 unique).
 
-3. **Inventory first (→ `list-files`)**
-   > "What files in my Google Drive would GDIOCSpider scan? Don't extract anything yet."
+3. **Cross-file pivots (→ `scan` + value→files index)**
+   > "Which domains and emails show up in more than one file? Ignore my prior-report
+   > files — the repeats in the real source data are my best pivot points."
 
-   Shows the skill running the cheap inventory and reading it back.
+   Payoff: ranks `phishing@badguys[.]com`, `dangerous-link[.]org`, `test@malicious[.]net`
+   (3 real files each) as top pivots.
 
-4. **Full hunt + judgment (→ config + `scan` + summary)**
-   > "Hunt for IOCs across my Drive and tell me the top indicator types and which
-   > file has the most hits. Call out anything that's probably a false positive."
+4. **Keyword hunt with context (→ keyword config + `scan` + correlation)**
+   > "Turn on keyword hunting for `Malware` and `traffic`, and tell me which files
+   > mention them and what other IOCs sit alongside — I want context, not a count."
 
-   Shows the skill scanning and then *reasoning* over the result — e.g. flagging
-   the `File Name` type as noisy — instead of dumping every row.
+   Payoff: `Malware` in 2 files, `traffic` in 4; both land together in
+   `DELETE_ME_GDOCS` and `DELETE_ME.txt` next to network IOCs + a hash.
 
-5. **Targeted, comparative (→ `ONLY_SEARCH_FILES` + `scan`)**
-   > "Only scan the JSON and text files in my Drive, and compare how many network
-   > IOCs each one has."
+5. **Targeted comparison (→ `ONLY_SEARCH_FILES` + `scan`)**
+   > "Scan only my JSON and text files and compare them on network IOCs and hashes —
+   > which is the richer artifact to triage first?"
 
-   Shows the skill translating intent into `ONLY_SEARCH_FILES` config.
+   Payoff: `DELETE_ME.json` wins (net 10 / hash 5 vs. 8 / 3).
 
 **Talking points while it runs:**
 - The skill reads `references/cli.md` / `references/config.md` to pick flags — the

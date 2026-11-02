@@ -1,155 +1,163 @@
 # GDIOCSpider — Agent Skill Demo Transcript (captured dry run)
 
-Captured on 2026-11-01 against a live Google Drive. This shows the five
-high-level prompts from the runbook and the tool calls the `gdiocspider` skill
-makes in Claude Code, with real command output (trimmed) and the answer.
+Captured on 2026-11-01 against a live Google Drive. Five high-level, analytical
+prompts and the tool calls the `gdiocspider` skill makes in Claude Code — each
+one asks the agent to crawl, then *reason* over the result, not just run a
+command. All figures are real.
 
 > The skill auto-loads in a fresh Claude Code session (it lives in
 > `.claude/skills/gdiocspider/`). If you just installed it, **restart Claude Code**
-> so it registers. The skill routes each request: a pasted indicator → `type`
-> (no Drive); a Drive hunt → `config` + `list-files` + `scan`, then a summary.
+> so it registers. In JSON mode `scan` writes results to `--output_file` (it does
+> not flood stdout); the agent reads that file to answer.
 
 ---
 
-## Prompt 1 — single indicator
+## Prompt 1 — rank sources & spot prior reports
 
-**💬 You:** "Is `203.0.113.42` an IOC, and what type?"
+**💬 You:** "Crawl my whole Drive, rank the files by how many unique IOCs each
+contributes, and for the biggest real source break down whether it's mostly
+network or file-based. Flag anything that's actually a previous report rather
+than source data."
 
-**🔧 Skill routes to `type` (no Drive crawl):**
-
-```console
-$ gdiocspider type --value "203.0.113.42"
-{
-  "ioc_value": "203[.]0[.]113[.]42",
-  "ioc_type": "IPv4"
-}
-```
-
-**🤖 Claude:** Yes — `203.0.113.42` classifies as an **IPv4** address. It's shown
-defanged (`203[.]0[.]113[.]42`) so it's safe to paste into tickets. This is a
-pure classification; I didn't touch your Drive.
-
----
-
-## Prompt 2 — pasted log line
-
-**💬 You:** "Pull any indicators out of this line: `Malware traffic detected from 203.0.113.42 via noxious@phishingsite.net`"
-
-**🔧 Skill uses `type --no-strict` (searches within text). A single call returns
-the first match, so I classify each token to surface everything:**
-
-```console
-$ gdiocspider type --value "Malware traffic detected from 203.0.113.42 via noxious@phishingsite.net" --no-strict
-{ "ioc_value": "203[.]0[.]113[.]42", "ioc_type": "IPv4" }
-
-$ # per-token pass to catch all IOCs:
-Malware                   -> Unknown
-traffic                   -> Unknown
-detected                  -> Unknown
-203.0.113.42              -> IPv4
-noxious@phishingsite.net  -> Email
-```
-
-**🤖 Claude:** Two indicators in that line:
-- **IPv4** — `203[.]0[.]113[.]42`
-- **Email** — `noxious@phishingsite[.]net`
-
-"Malware/traffic/detected" are plain prose, not structured IOCs, so the typer
-leaves them `Unknown` (they'd only register if you supplied a keyword list).
-
----
-
-## Prompt 3 — inventory first
-
-**💬 You:** "What files in my Google Drive would GDIOCSpider scan? Don't extract anything yet."
-
-**🔧 Skill routes to `list-files` (auth + inventory, no downloads):**
-
-```console
-$ gdiocspider list-files --config_file demo/configs/01_full_scan.json
-  total 8
-    Google Sheets 2
-    CSV File      2
-    Google Docs   1
-    JSON File     1
-    Text File     1
-    Python Script 1
-```
-
-**🤖 Claude:** GDIOCSpider would scan **8 files**: 2 Google Sheets
-(`indicator_data`, `DELETE_ME`), 2 CSVs (`indicator_data.csv`, `DELETE_ME.csv`),
-1 Google Doc (`DELETE_ME_GDOCS`), 1 JSON (`DELETE_ME.json`), 1 text file
-(`DELETE_ME.txt`), and 1 Python script (`DELETE_ME.py`). The `old_school_stuff`
-folder is skipped per the ignore list. Nothing was downloaded or extracted.
-
----
-
-## Prompt 4 — full hunt + judgment
-
-**💬 You:** "Hunt for IOCs across my Drive and tell me the top indicator types and which file has the most hits. Call out anything that's probably a false positive."
-
-**🔧 Skill routes to `scan`, then reasons over the result:**
+**🔧 Skill routes to a full `scan`, then reasons over `demo/output/full.json`:**
 
 ```console
 $ gdiocspider scan --config_file demo/configs/01_full_scan.json \
     --output_file demo/output/full.json --format json
-  (progress on stderr; 182 indicators across 8 files)
-
-TYPES: IPv4 62, Domain Name 46, Email 28, File Name 18, MD5 14, SHA256 10, File Path 4
-FILES (name, unique, hits):
-  indicator_data          48  214
-  indicator_data.csv      48  214
-  DELETE_ME.csv           32   32
-  DELETE_ME.json          21   21
-  DELETE_ME_GDOCS         14   17
-  DELETE_ME.txt           12   12
-  DELETE_ME                6    6
-  DELETE_ME.py            1    1
+  ... crawl progress on stderr ...
+  Wrote 8 file record(s) to demo/output/full.json
 ```
 
-**🤖 Claude:** **182 unique indicators across all 8 files.** Top types: **IPv4 (62),
-Domain Name (46), Email (28)** — a network-heavy set — then File Name 18, MD5 14,
-SHA256 10, File Path 4.
+**🤖 Claude:** Ranked by unique indicators:
 
-Most hits: **`indicator_data` and `indicator_data.csv`** (214 each).
+| File | Unique | Note |
+|---|--:|---|
+| `indicator_data` | 48 | ⚠ prior report |
+| `indicator_data.csv` | 48 | ⚠ prior report (identical set) |
+| `DELETE_ME.csv` | 32 | real source |
+| `DELETE_ME.json` | 21 | real source |
+| `DELETE_ME_GDOCS` | 14 | real source |
+| `DELETE_ME.txt` | 12 | real source |
+| `DELETE_ME` | 6 | real source |
+| `DELETE_ME.py` | 1 | real source |
 
-Likely false positives to flag:
-- **`indicator_data` / `indicator_data.csv` are a previous GDIOCSpider *output*
-  file** re-ingested as input — that's why their counts dominate and mirror each
-  other. In a real hunt I'd exclude prior reports from the scan scope.
-- The **File Name** type (18) is the noisiest category — generic names like
-  `invoice.docx` / `document.pdf` match but rarely mean anything on their own.
-- Private/reserved IPs (`192.168.*`, `10.0.*`, `127.0.0.1`) are extracted but
-  aren't threat indicators by themselves.
+**The top two are a trap** — `indicator_data` and `indicator_data.csv` hold the
+*exact same* 48 indicators and contain report-schema filenames (`DELETE_ME.csv`
+appearing 64×), so they're a previous GDIOCSpider export re-ingested, not source
+data. Excluding them, your biggest real source is **`DELETE_ME.csv` (32 unique)**,
+and it's almost entirely **network/host**: 21 network (14 IPv4 + 7 domains) plus
+6 emails and 5 hashes, with **zero** filename/path noise. That's the file to
+triage first.
 
 ---
 
-## Prompt 5 — targeted, comparative
+## Prompt 2 — are the two sheets independent?
 
-**💬 You:** "Only scan the JSON and text files in my Drive, and compare how many network IOCs each one has."
+**💬 You:** "Do my two Google Sheets (`indicator_data` and `DELETE_ME`) overlap
+or are they independent? Tell me which indicators they share and which are unique
+to each."
 
-**🔧 Skill writes `ONLY_SEARCH_FILES` config, scans, compares:**
+**🔧 Skill `scan`s, then diffs the two sheets' indicator sets:**
+
+```console
+$ gdiocspider scan --config_file demo/configs/01_full_scan.json \
+    --output_file demo/output/full.json --format json
+  Wrote 8 file record(s) to demo/output/full.json
+```
+
+**🤖 Claude:** They're **not independent** — `DELETE_ME` is fully contained in
+`indicator_data`. All 6 of `DELETE_ME`'s indicators (`192.168.1.1`, `fake.sh`,
+`fake.py`, `www.bull.com`, `www.fake.com`, `www.thisaintreal.com`) also appear in
+`indicator_data`; **nothing is unique to `DELETE_ME`**, while `indicator_data` has
+42 others on top. So `indicator_data` is an aggregate report that already absorbed
+`DELETE_ME`'s findings — treat `DELETE_ME` as redundant and dedupe against the
+report rather than counting both.
+
+---
+
+## Prompt 3 — cross-file pivot points
+
+**💬 You:** "Which domains and emails show up in more than one file? Ignore my
+prior-report files — the repeats across the *real* source files are my best pivot
+points."
+
+**🔧 Skill `scan`s, builds a value→files index, drops the report files:**
+
+```console
+$ gdiocspider scan --config_file demo/configs/01_full_scan.json \
+    --output_file demo/output/full.json --format json
+  Wrote 8 file record(s) to demo/output/full.json
+```
+
+**🤖 Claude:** Excluding `indicator_data` / `indicator_data.csv`, the indicators
+that recur across the most *real* source files — your strongest pivots:
+
+| Indicator | Real source files |
+|---|--:|
+| `phishing@badguys[.]com` | 3 (csv, txt, gdocs) |
+| `dangerous-link[.]org` | 3 (csv, txt, gdocs) |
+| `test@malicious[.]net` | 3 (csv, json, gdocs) |
+| `bad-actor[.]com`, `phishing@evil[.]com`, `suspicious-site[.]org`, `www.malicious-site[.]com`, `innocent@legit[.]com`, `www.example-safe[.]com`, `safeuser@example[.]com` | 2 each |
+
+The top three appear in three independent files apiece — if I were pivoting, I'd
+start with `phishing@badguys[.]com` and `dangerous-link[.]org`.
+
+---
+
+## Prompt 4 — keyword hunt with context
+
+**💬 You:** "Turn on keyword hunting for `Malware` and `traffic`, and tell me
+which files mention them and what other IOCs sit alongside — I want the context,
+not just a hit count."
+
+**🔧 Skill switches to the keyword config (`Keyword` enabled + `demo/keywords.txt`),
+`scan`s, then correlates keyword hits with co-located IOCs:**
+
+```console
+$ gdiocspider scan --config_file demo/configs/04_keywords.json \
+    --output_file demo/output/keywords.json --format json
+  Wrote 8 file record(s) to demo/output/keywords.json
+```
+
+**🤖 Claude:**
+- **`Malware`** — 2 files. `DELETE_ME_GDOCS` (alongside 5 IPv4, 4 domains, 3
+  emails, 1 SHA256) and `DELETE_ME.txt` (5 IPv4, 3 domains, 2 MD5, 1 SHA256).
+- **`traffic`** — 4 files: `DELETE_ME.csv`, `DELETE_ME_GDOCS`, `DELETE_ME.json`,
+  `DELETE_ME.txt`.
+
+Both terms land together in **`DELETE_ME_GDOCS` and `DELETE_ME.txt`**, each next
+to a cluster of network IOCs and a hash — those two read like incident narratives,
+so they're the artifacts to open first for context.
+
+---
+
+## Prompt 5 — structured vs. unstructured richness
+
+**💬 You:** "Scan only my JSON and text files and compare them on network IOCs and
+hashes — which is the richer artifact to triage first?"
+
+**🔧 Skill writes an `ONLY_SEARCH_FILES` config, `scan`s, compares:**
 
 ```console
 $ gdiocspider scan --config_file demo/configs/02_targeted.json \
     --output_file demo/output/targeted.json --format json
-  DELETE_ME.json   network=10 (IPv4 6, Domain 4)
-  DELETE_ME.txt    network=8  (IPv4 5, Domain 3)
+  Wrote 2 file record(s) to demo/output/targeted.json
 ```
 
-**🤖 Claude:** Scanning only the two files: **`DELETE_ME.json` has more network
-IOCs — 10 (6 IPv4 + 4 domains)** vs. **`DELETE_ME.txt` with 8 (5 IPv4 + 3
-domains)**. The JSON also carries more hashes (3 MD5 + 2 SHA256) than the text
-file (2 MD5 + 1 SHA256), so it's the richer artifact overall.
+**🤖 Claude:** **`DELETE_ME.json` is the richer artifact.** Network IOCs: **10**
+(6 IPv4 + 4 domains) vs. the text file's **8** (5 IPv4 + 3 domains). Hashes: **5**
+(3 MD5 + 2 SHA256) vs. **3** (2 MD5 + 1 SHA256). The JSON carries more of both, so
+triage it before `DELETE_ME.txt`.
 
 ---
 
 ## Why this lands
 
-- The user never typed a flag or a MIME type — the skill translated intent into
-  the right subcommand and config each time.
-- It distinguishes "classify this string" (no Drive) from "hunt my Drive" on its
-  own.
-- On the full hunt it **reasons** — surfacing the self-referential output file
-  and the noisy File Name type — instead of dumping 182 rows.
-- Same engine as the CLI demo; the agent is a natural-language front-end.
+- Every prompt is a real analyst question — rank, dedupe, pivot, correlate,
+  compare — not a flag lookup. The user states intent; the skill picks the config
+  and subcommand and does the crawl.
+- The agent **reasons over the result**: it catches the two `indicator_data`
+  files as re-ingested reports (Prompts 1–3), proves one sheet is a subset of the
+  other (Prompt 2), and ranks pivots by cross-file recurrence (Prompt 3).
+- Same engine as the CLI demo — the agent is just a natural-language analyst on
+  top of the same `scan`.
