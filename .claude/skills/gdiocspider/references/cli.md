@@ -2,7 +2,7 @@
 
 Install from the repo root (`pip install .`). The console script is `gdiocspider`.
 
-Progress messages stay on stderr when `--format json`. `list-files` and `type` print their JSON result to stdout; `scan` writes its JSON to `--output_file` and does **not** echo the array to stdout (only a one-line `Wrote N file record(s)...` pointer on stderr), so the terminal is never flooded. Failures use exit code 1 and, in JSON mode, print `{"error": "..."}` on stdout.
+Progress messages stay on stderr when `--format json`. `type` prints its JSON result to stdout; `list-files` prints a readable category/filename inventory to stdout (not a raw JSON blob); `scan` writes its JSON to `--output_file` and does **not** echo the array to stdout (only a one-line `Wrote N file record(s)...` pointer on stderr), so the terminal is never flooded. Failures use exit code 1 and, in JSON mode, print `{"error": "..."}` on stdout.
 
 Do not print or commit `token.json` or `credentials.json`.
 
@@ -56,18 +56,19 @@ Auth + inventory only. No downloads, no IOC extraction.
 gdiocspider list-files --config_file "/abs/path/config.json"
 ```
 
-Stdout:
+Stdout is a readable inventory (not a JSON blob) — each category, the file names under it, and a total:
 
-```json
-{
-  "files": {
-    "Text File": [{"id": "...", "name": "...", "path": "...", "mimeType": "...", "category": "Text File", "size": "..."}]
-  },
-  "total": 1
-}
+```
+CSV File (2)
+  - indicator_data.csv
+  - DELETE_ME.csv
+Text File (1)
+  - DELETE_ME.txt
+
+Total: 8 file(s)
 ```
 
-Use this before a full crawl to propose `IGNORE_FILES_AND_FOLDERS` or `ONLY_SEARCH_FILES`.
+Progress/auth messages go to stderr. Use this before a full crawl to propose `IGNORE_FILES_AND_FOLDERS` or `ONLY_SEARCH_FILES`.
 
 ## Authentication
 

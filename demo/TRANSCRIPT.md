@@ -8,87 +8,22 @@ Real output captured from a live Google Drive crawl on 2026-11-01. Repetitive pe
 
 ```console
 $ gdiocspider list-files --config_file demo/configs/01_full_scan.json
-{
-  "files": {
-    "Google Sheets": [
-      {
-        "id": "1F9YwgNuwmTA1KfF3Od27RZPON12txw2V4j_VOs5W2xI",
-        "name": "indicator_data",
-        "path": "/indicator_data",
-        "mimeType": "application/vnd.google-apps.spreadsheet",
-        "category": "Google Sheets",
-        "size": "2091"
-      },
-      {
-        "id": "1GHAKVmPRLu1BSA1Y-R9HtESHmt-ATJNzZXKPT7wvD60",
-        "name": "DELETE_ME",
-        "path": "/DELETE_ME",
-        "mimeType": "application/vnd.google-apps.spreadsheet",
-        "category": "Google Sheets",
-        "size": "1024"
-      }
-    ],
-    "CSV File": [
-      {
-        "id": "1dpaacj7Y1r3L1S-uYsx51pY8VXidkL3M",
-        "name": "indicator_data.csv",
-        "path": "/indicator_data.csv",
-        "mimeType": "text/csv",
-        "category": "CSV File",
-        "size": "8869"
-      },
-      {
-        "id": "13FMfzsRj_ob2CuMnxSLrUvKQIf28AJsi",
-        "name": "DELETE_ME.csv",
-        "path": "/DELETE_ME.csv",
-        "mimeType": "text/csv",
-        "category": "CSV File",
-        "size": "1080"
-      }
-    ],
-    "Google Docs": [
-      {
-        "id": "1OxNZ21Jh4_9rahHpG3Gm0-nryfx3GB5qnwxo8wsW8pI",
-        "name": "DELETE_ME_GDOCS",
-        "path": "/DELETE_ME_GDOCS",
-        "mimeType": "application/vnd.google-apps.document",
-        "category": "Google Docs",
-        "size": "3077"
-      }
-    ],
-    "JSON File": [
-      {
-        "id": "1z2dY6uKMQyYxwkoEHAt6oigXBCnxslQu",
-        "name": "DELETE_ME.json",
-        "path": "/DELETE_ME.json",
-        "mimeType": "application/json",
-        "category": "JSON File",
-        "size": "2095"
-      }
-    ],
-    "Text File": [
-      {
-        "id": "1rwSyKt1tIiNGNO7Rnv7TdpWOw35NGuUD",
-        "name": "DELETE_ME.txt",
-        "path": "/DELETE_ME.txt",
-        "mimeType": "text/plain",
-        "category": "Text File",
-        "size": "1299"
-      }
-    ],
-    "Python Script": [
-      {
-        "id": "13NGBtyGjTYgsxKPSn1oU19aEk6OpRxbX",
-        "name": "DELETE_ME.py",
-        "path": "/DELETE_ME.py",
-        "mimeType": "text/x-python",
-        "category": "Python Script",
-        "size": "20"
-      }
-    ]
-  },
-  "total": 8
-}
+CSV File (2)
+  - indicator_data.csv
+  - DELETE_ME.csv
+Google Docs (1)
+  - DELETE_ME_GDOCS
+Google Sheets (2)
+  - indicator_data
+  - DELETE_ME
+JSON File (1)
+  - DELETE_ME.json
+Python Script (1)
+  - DELETE_ME.py
+Text File (1)
+  - DELETE_ME.txt
+
+Total: 8 file(s)
 ```
 
 **8 files**, grouped by category. No downloads, no extraction.

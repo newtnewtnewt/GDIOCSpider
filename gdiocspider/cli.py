@@ -209,7 +209,16 @@ def run_list_files(args):
             as_json=as_json,
         )
     total = sum(len(items) for items in files.values())
-    emit_json({"files": files, "total": total})
+    # Don't dump the raw JSON blob to the terminal. Print a readable inventory:
+    # each category, the files under it, and the total.
+    lines = []
+    for category in sorted(files):
+        items = files[category]
+        lines.append(f"{category} ({len(items)})")
+        for item in items:
+            lines.append(f"  - {item.get('name', '?')}")
+    lines.append(f"\nTotal: {total} file(s)")
+    print("\n".join(lines))
     return files
 
 

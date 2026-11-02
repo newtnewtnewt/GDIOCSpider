@@ -55,7 +55,7 @@ gdiocspider type --value "1.1.1.1"
 gdiocspider type --value "see 1.1.1.1 in this sentence" --no-strict
 ```
 
-`--format json`: `scan` writes the structured results to `--output_file` and does not echo the array to stdout (only a short `Wrote N file record(s)...` pointer on stderr), so the terminal is not flooded — read or summarize the file instead. `list-files` and `type` print their JSON to stdout. Progress logs go to stderr so they do not break JSON parsing.
+`--format json`: `scan` writes the structured results to `--output_file` and does not echo the array to stdout (only a short `Wrote N file record(s)...` pointer on stderr), so the terminal is not flooded — read or summarize the file instead. `type` prints its JSON to stdout; `list-files` prints a readable category/filename inventory to stdout (not a raw JSON blob). Progress logs go to stderr so they do not break JSON parsing.
 
 # Use from any Agent Skills host
 
