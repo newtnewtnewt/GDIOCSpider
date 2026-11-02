@@ -184,7 +184,13 @@ def run_scan(args):
             as_json=as_json,
         )
     if as_json:
-        emit_json(processed)
+        # Results are written to --output_file. Don't also echo the full array to
+        # stdout -- that floods the terminal. Print a one-line pointer instead;
+        # read the file (or pipe it to demo/summarize.py) to inspect results.
+        print(
+            f"Wrote {len(processed)} file record(s) to {args.output_file}",
+            file=sys.stderr,
+        )
     return processed
 
 

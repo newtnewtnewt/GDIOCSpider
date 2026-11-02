@@ -2,7 +2,7 @@
 
 Install from the repo root (`pip install .`). The console script is `gdiocspider`.
 
-Progress messages stay on stderr when `--format json`. Structured results go to stdout. Failures use exit code 1 and, in JSON mode, print `{"error": "..."}` on stdout.
+Progress messages stay on stderr when `--format json`. `list-files` and `type` print their JSON result to stdout; `scan` writes its JSON to `--output_file` and does **not** echo the array to stdout (only a one-line `Wrote N file record(s)...` pointer on stderr), so the terminal is never flooded. Failures use exit code 1 and, in JSON mode, print `{"error": "..."}` on stdout.
 
 Do not print or commit `token.json` or `credentials.json`.
 
@@ -23,7 +23,7 @@ gdiocspider scan --config_file "/abs/path/config.json" --output_file "/abs/path/
 gdiocspider scan --config_file "/abs/path/config.json" --output_file "/abs/path/indicator_data.json" --format json
 ```
 
-`--format json` writes the nested record array to the output file and prints that same array on stdout.
+`--format json` writes the nested record array to `--output_file`. It is **not** echoed to stdout (that would flood the terminal) — read or summarize the file to inspect results.
 
 Each record:
 
